@@ -644,7 +644,6 @@ export default {
     const businessStore = useBusinessStore()
     const offersStore = useOffersStore()
     const { closePanel, showNotification } = uiStore
-    const { getUserOffers } = storeToRefs(businessStore)
     const { t } = useLocale()
 
     const isLoading = ref(false)
