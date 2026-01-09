@@ -1116,6 +1116,12 @@ export default {
 
     // Определяем начальный шаг
     const determineInitialStep = async () => {
+      console.log('🔄 determineInitialStep called', { 
+        isBusinessOwner: authStore.isBusinessOwner, 
+        justBecameBusiness: justBecameBusiness.value,
+        telegramId: authStore.user?.telegram_id
+      })
+
       // Если только что прошли верификацию - показываем создание
       if (justBecameBusiness.value) {
         currentStep.value = 'create-offer'
@@ -1125,14 +1131,23 @@ export default {
       
       if (authStore.isBusinessOwner) {
         // Загружаем объявления пользователя
-        await businessStore.loadUserOffers()
-        
-        // Если нет объявлений - показываем форму создания
-        // Если есть - показываем дашборд
-        if (businessStore.getUserOffers.length === 0) {
+        isLoading.value = true
+        try {
+          await businessStore.loadUserOffers()
+          console.log('📦 Loaded offers:', businessStore.userOffers.length)
+          
+          // Если нет объявлений - показываем форму создания
+          // Если есть - показываем дашборд
+          if (businessStore.userOffers.length === 0) {
+            currentStep.value = 'create-offer'
+          } else {
+            currentStep.value = 'dashboard'
+          }
+        } catch (e) {
+          console.error('❌ Error loading offers:', e)
           currentStep.value = 'create-offer'
-        } else {
-          currentStep.value = 'dashboard'
+        } finally {
+          isLoading.value = false
         }
       } else {
         currentStep.value = 'verification'
@@ -1145,10 +1160,29 @@ export default {
       currentStep.value = 'create-offer'
     }
 
-    onMounted(() => {
-      loadCategories()
-      determineInitialStep()
-      loadActiveBoosts()
+    // Watch для отслеживания изменения роли пользователя
+    watch(() => authStore.isBusinessOwner, (newValue, oldValue) => {
+      console.log('👀 isBusinessOwner changed:', oldValue, '->', newValue)
+      if (newValue && !oldValue && !justBecameBusiness.value) {
+        determineInitialStep()
+      }
+    })
+
+    // Watch для отслеживания смены таба - перезагружаем данные
+    watch(activeTab, async (newTab) => {
+      if (newTab === 'offers' && authStore.isBusinessOwner) {
+        await businessStore.loadUserOffers()
+        await loadActiveBoosts()
+      }
+    })
+
+    onMounted(async () => {
+      console.log('🚀 BusinessPanel mounted')
+      await loadCategories()
+      await determineInitialStep()
+      if (authStore.isBusinessOwner) {
+        await loadActiveBoosts()
+      }
     })
 
     return { 
