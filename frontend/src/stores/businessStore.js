@@ -56,16 +56,20 @@ export const useBusinessStore = defineStore('business', () => {
   const createOffer = async (offerData) => {
     if (!authStore.user?.telegram_id) throw new Error('Not authenticated')
     
+    console.log('📝 Creating offer:', offerData.title)
+    
     try {
       const result = await apiService.createOffer(authStore.user.telegram_id, offerData)
+      console.log('✅ Offer created:', result)
       userOffers.value.push(result)
       return result
     } catch (error) {
-      console.log('Create offer error:', error)
-      // Добавляем локально
+      console.error('❌ Create offer error:', error)
+      // Добавляем локально только если это ошибка сети
       const newOffer = {
         id: String(Date.now()),
         ...offerData,
+        user_id: authStore.user.telegram_id,
         status: 'active',
         views: 0,
         likes: 0,
