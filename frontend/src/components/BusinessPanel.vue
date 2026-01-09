@@ -919,6 +919,8 @@ export default {
         
         // Обновляем глобальный список офферов для карты
         await offersStore.fetchOffers()
+        // Обновляем список объявлений пользователя
+        await businessStore.loadUserOffers()
         
         resetForm()
         currentStep.value = 'dashboard'
