@@ -32,14 +32,21 @@ export const useBusinessStore = defineStore('business', () => {
 
   // Actions
   const loadUserOffers = async () => {
-    if (!authStore.user?.telegram_id) return
+    if (!authStore.user?.telegram_id) {
+      console.log('⚠️ loadUserOffers: No telegram_id')
+      return
+    }
     
     isLoading.value = true
+    console.log('📡 Loading offers for user:', authStore.user.telegram_id)
+    
     try {
       const result = await apiService.getUserOffers(authStore.user.telegram_id)
+      console.log('📦 API response:', result)
       userOffers.value = result.offers || []
+      console.log('✅ Loaded', userOffers.value.length, 'offers')
     } catch (error) {
-      console.log('Load offers error:', error)
+      console.error('❌ Load offers error:', error)
       userOffers.value = []
     } finally {
       isLoading.value = false
