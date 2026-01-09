@@ -704,7 +704,7 @@ export default {
       { id: '7days', days: 7, price: 300, currency: 'XTR', popular: false }
     ])
 
-    const userOffers = computed(() => getUserOffers.value)
+    const userOffers = computed(() => businessStore.userOffers || [])
     const businessInfo = computed(() => ({ 
       companyName: authStore.user?.company_name || authStore.user?.first_name || 'Бизнес' 
     }))
