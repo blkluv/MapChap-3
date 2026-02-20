@@ -7,9 +7,18 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: true,
-    allowedHosts: 'all'
+    hmr: {
+      host: '0.0.0.0'
+    },
+    watch: {
+      usePolling: true
+    }
   },
   build: {
     outDir: 'dist'
+  },
+  // Разрешаем все хосты
+  preview: {
+    host: '0.0.0.0'
   }
 })
