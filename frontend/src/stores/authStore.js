@@ -111,6 +111,13 @@ export const useAuthStore = defineStore('auth', () => {
       verification_type: businessData.verificationType
     }
     
+    // Сохраняем в localStorage для persistence
+    try {
+      localStorage.setItem('mapchap_user', JSON.stringify(user.value))
+    } catch (e) {
+      console.log('⚠️ Could not save to localStorage')
+    }
+    
     console.log('✅ User registered as business:', user.value.company_name)
   }
 
@@ -121,11 +128,22 @@ export const useAuthStore = defineStore('auth', () => {
       const userData = await apiService.getUser(user.value.telegram_id)
       if (userData) {
         user.value = userData
+        // Сохраняем в localStorage
+        try {
+          localStorage.setItem('mapchap_user', JSON.stringify(userData))
+        } catch (e) {}
         console.log('✅ User data refreshed')
       }
     } catch (error) {
       console.log('⚠️ Could not fetch user, keeping local data')
-      // Не выбрасываем ошибку, просто сохраняем локальные данные
+      // Пробуем загрузить из localStorage
+      try {
+        const cached = localStorage.getItem('mapchap_user')
+        if (cached) {
+          user.value = JSON.parse(cached)
+          console.log('📦 Loaded user from cache')
+        }
+      } catch (e) {}
     }
   }
 
