@@ -17,6 +17,21 @@ export const useAuthStore = defineStore('auth', () => {
   const initTelegramAuth = async () => {
     console.log('🔐 Initializing Telegram Auth...')
     
+    // Сначала пробуем загрузить из localStorage
+    try {
+      const cached = localStorage.getItem('mapchap_user')
+      if (cached) {
+        const cachedUser = JSON.parse(cached)
+        if (cachedUser?.telegram_id) {
+          user.value = cachedUser
+          console.log('📦 Loaded user from cache:', cachedUser.first_name)
+          // Пытаемся обновить данные с сервера в фоне
+          fetchUser()
+          return
+        }
+      }
+    } catch (e) {}
+    
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       telegramWebApp.value = window.Telegram.WebApp
       const tg = window.Telegram.WebApp
@@ -42,6 +57,10 @@ export const useAuthStore = defineStore('auth', () => {
           
           if (result.success && result.user) {
             user.value = result.user
+            // Сохраняем в localStorage
+            try {
+              localStorage.setItem('mapchap_user', JSON.stringify(result.user))
+            } catch (e) {}
             console.log('✅ Auth successful')
           }
         } catch (error) {
