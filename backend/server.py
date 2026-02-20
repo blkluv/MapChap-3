@@ -719,7 +719,7 @@ async def update_location(telegram_id: int, location: LocationUpdate):
                 "medical": "⚕️", "furniture": "🛋️", "pharmacy": "💊", "entertainment": "🎭"
             }
             
-            message = f"📍 <b>Рядом с вами найдены места из ваших любимых категорий!</b>\n\n"
+            message = "📍 <b>Рядом с вами найдены места из ваших любимых категорий!</b>\n\n"
             for offer in nearby_offers[:3]:
                 icon = category_icons.get(offer.get("category"), "📍")
                 message += f"{icon} <b>{offer['title']}</b>\n{offer['address']}\n\n"
