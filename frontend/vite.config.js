@@ -7,18 +7,16 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: true,
-    hmr: {
-      host: '0.0.0.0'
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
     },
-    watch: {
-      usePolling: true
+    proxy: {},
+    fs: {
+      strict: false
     }
   },
   build: {
     outDir: 'dist'
-  },
-  // Разрешаем все хосты
-  preview: {
-    host: '0.0.0.0'
   }
 })
