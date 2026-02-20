@@ -7,7 +7,7 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: true,
-    allowedHosts: true,
+    allowedHosts: ['.emergentcf.cloud', '.emergentagent.com', '.preview.emergentagent.com', 'localhost'],
     cors: true
   },
   build: {
