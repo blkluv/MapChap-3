@@ -7,14 +7,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: true,
-    cors: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*'
-    },
-    proxy: {},
-    fs: {
-      strict: false
-    }
+    allowedHosts: true,
+    cors: true
   },
   build: {
     outDir: 'dist'
