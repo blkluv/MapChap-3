@@ -209,9 +209,9 @@ export default {
     
     // Тарифные планы с Telegram Stars
     const boostPlans = ref([
-      { id: '1day', days: 1, icon: '•', price: 50, currency: 'XTR', popular: false, best: false },
-      { id: '5days', days: 5, icon: '•', price: 200, currency: 'XTR', popular: true, best: false },
-      { id: '7days', days: 7, icon: '•', price: 300, currency: 'XTR', popular: false, best: true }
+      { id: '1day', days: 1, icon: '•', price: 350, currency: 'XTR', popular: false, best: false },
+      { id: '5days', days: 5, icon: '•', price: 1200, currency: 'XTR', popular: true, best: false },
+      { id: '7days', days: 7, icon: '•', price: 1600, currency: 'XTR', popular: false, best: true }
     ])
     
     // Активные бусты пользователя
