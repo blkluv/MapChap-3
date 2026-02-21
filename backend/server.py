@@ -1157,7 +1157,7 @@ async def get_payment_history(telegram_id: int):
 
 # ===================== TELEGRAM BOT WEBHOOK =====================
 
-WEBAPP_URL = "https://business-panel-fix.preview.emergentagent.com"
+WEBAPP_URL = "https://map-chap-3.vercel.app"
 
 class TelegramUpdate(BaseModel):
     update_id: int
