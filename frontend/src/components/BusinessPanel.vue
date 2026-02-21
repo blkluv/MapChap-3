@@ -820,9 +820,6 @@ export default {
             verificationType: 'inn'
           })
           
-          // Пытаемся синхронизировать с сервером (не критично если не получится)
-          await authStore.fetchUser()
-          
           showNotification('Верификация пройдена!', 'success')
           
           // Заполняем адрес из данных DaData
