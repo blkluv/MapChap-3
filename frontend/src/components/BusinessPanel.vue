@@ -1077,11 +1077,17 @@ export default {
           throw new Error(result.error || 'Ошибка создания счёта')
         }
 
+        const invoiceLink = result.invoice?.invoice_link
+        if (!invoiceLink) {
+          throw new Error('Не удалось создать ссылку на оплату')
+        }
+
         const tg = window.Telegram?.WebApp
 
-        if (tg && result.invoice?.invoice_link) {
-          // Открываем Telegram Payment
-          tg.openInvoice(result.invoice.invoice_link, async (status) => {
+        if (tg?.openInvoice) {
+          // Открываем через Telegram WebApp API
+          tg.openInvoice(invoiceLink, async (status) => {
+            console.log('Payment status:', status)
             if (status === 'paid') {
               // Подтверждаем платёж
               try {
@@ -1103,15 +1109,29 @@ export default {
               }
             } else if (status === 'cancelled') {
               showNotification('Оплата отменена', 'info')
+            } else if (status === 'failed') {
+              showNotification('Ошибка оплаты', 'error')
             }
             isPurchasingBoost.value = false
           })
         } else {
-          // Демо-режим без Telegram WebApp
-          showNotification(`Для оплаты откройте приложение в Telegram`, 'info')
+          // Fallback - открываем ссылку напрямую
+          console.log('Opening invoice link directly:', invoiceLink)
+          window.open(invoiceLink, '_blank')
+          
+          showNotification('Откройте ссылку для оплаты в Telegram', 'info')
           isPurchasingBoost.value = false
+          
+          // Сохраняем pending платёж для ручной проверки
+          localStorage.setItem('pending_payment', JSON.stringify({
+            offer_id: boostingOffer.value.id,
+            boost_type: selectedBoostPlan.value,
+            amount: plan.price,
+            created_at: new Date().toISOString()
+          }))
         }
       } catch (e) {
+        console.error('Purchase error:', e)
         showNotification(e.message || 'Ошибка', 'error')
         isPurchasingBoost.value = false
       }
