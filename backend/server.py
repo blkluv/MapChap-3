@@ -1188,10 +1188,86 @@ async def send_telegram_message(chat_id: int, text: str, reply_markup: dict = No
 async def telegram_webhook(update: TelegramUpdate):
     """Обработка webhook от Telegram бота"""
     
+    # Обработка pre_checkout_query (подтверждение платежа)
+    if update.pre_checkout_query:
+        query = update.pre_checkout_query
+        query_id = query.get("id")
+        
+        # Всегда подтверждаем платёж
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerPreCheckoutQuery",
+                json={
+                    "pre_checkout_query_id": query_id,
+                    "ok": True
+                }
+            )
+        print(f"✅ Pre-checkout confirmed for query {query_id}")
+        return {"ok": True}
+    
     if update.message:
         chat_id = update.message.get("chat", {}).get("id")
         text = update.message.get("text", "")
         user = update.message.get("from", {})
+        
+        # Обработка успешного платежа
+        successful_payment = update.message.get("successful_payment")
+        if successful_payment:
+            print(f"💰 Payment received: {successful_payment}")
+            
+            # Парсим payload: payment_id:boost_type:offer_id
+            payload = successful_payment.get("invoice_payload", "")
+            parts = payload.split(":")
+            
+            if len(parts) >= 3:
+                payment_id, boost_type, offer_id = parts[0], parts[1], parts[2]
+                telegram_id = user.get("id")
+                amount = successful_payment.get("total_amount", 0)
+                currency = successful_payment.get("currency", "XTR")
+                telegram_charge_id = successful_payment.get("telegram_payment_charge_id", "")
+                
+                # Получаем план
+                plan = BOOST_PLANS.get(boost_type)
+                if plan and telegram_id:
+                    # Создаём буст
+                    from datetime import timedelta
+                    boost_doc = {
+                        "id": str(uuid.uuid4()),
+                        "user_id": telegram_id,
+                        "offer_id": offer_id,
+                        "boost_type": boost_type,
+                        "days": plan["days"],
+                        "price": amount,
+                        "currency": currency,
+                        "status": "active",
+                        "notifications_sent": 0,
+                        "telegram_payment_id": telegram_charge_id,
+                        "created_at": datetime.utcnow(),
+                        "expires_at": datetime.utcnow() + timedelta(days=plan["days"])
+                    }
+                    
+                    await db.boosts.insert_one(boost_doc)
+                    
+                    # Обновляем статус платежа
+                    await db.payments.update_one(
+                        {"id": payment_id},
+                        {"$set": {"status": "completed", "completed_at": datetime.utcnow(), "telegram_charge_id": telegram_charge_id}}
+                    )
+                    
+                    # Отправляем подтверждение пользователю
+                    await send_telegram_message(
+                        chat_id,
+                        f"✅ <b>Оплата успешна!</b>\n\nБуст на {plan['days']} дней активирован.\nСпасибо за покупку!",
+                        {
+                            "inline_keyboard": [[
+                                {"text": "📊 Открыть панель", "web_app": {"url": WEBAPP_URL}}
+                            ]]
+                        }
+                    )
+                    
+                    print(f"✅ Boost created for user {telegram_id}, offer {offer_id}")
+            
+            return {"ok": True}
         
         if text == "/start":
             welcome_text = f"""
