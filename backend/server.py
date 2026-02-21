@@ -1149,6 +1149,120 @@ async def get_payment_history(telegram_id: int):
     return {"payments": payments}
 
 
+# ===================== TELEGRAM BOT WEBHOOK =====================
+
+WEBAPP_URL = "https://business-panel-fix.preview.emergentagent.com"
+
+class TelegramUpdate(BaseModel):
+    update_id: int
+    message: Optional[dict] = None
+    callback_query: Optional[dict] = None
+
+async def send_telegram_message(chat_id: int, text: str, reply_markup: dict = None):
+    """Отправить сообщение в Telegram"""
+    if not TELEGRAM_BOT_TOKEN:
+        return
+    
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML"
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json=payload
+        )
+
+@app.post("/api/telegram/webhook")
+async def telegram_webhook(update: TelegramUpdate):
+    """Обработка webhook от Telegram бота"""
+    
+    if update.message:
+        chat_id = update.message.get("chat", {}).get("id")
+        text = update.message.get("text", "")
+        user = update.message.get("from", {})
+        
+        if text == "/start":
+            welcome_text = f"""
+👋 <b>Привет, {user.get('first_name', 'друг')}!</b>
+
+Добро пожаловать в <b>MapChap</b> — платформу бизнес-объявлений на карте!
+
+🔹 Находи бизнесы рядом с тобой
+🔹 Создавай объявления для своего бизнеса
+🔹 Получай клиентов через push-уведомления
+
+Нажми кнопку ниже, чтобы открыть приложение 👇
+"""
+            await send_telegram_message(
+                chat_id, 
+                welcome_text,
+                {
+                    "inline_keyboard": [[
+                        {"text": "🚀 Открыть MapChap", "web_app": {"url": WEBAPP_URL}}
+                    ]]
+                }
+            )
+        
+        elif text == "/help":
+            help_text = """
+📖 <b>Помощь по MapChap</b>
+
+<b>Для пользователей:</b>
+• Открой карту и найди нужный бизнес
+• Нажми на маркер для просмотра деталей
+• Добавляй в избранное
+
+<b>Для бизнеса:</b>
+• Зарегистрируйся как бизнес (по ИНН или вручную)
+• Создай объявление с адресом
+• Буст своё объявление для большего охвата
+
+<b>Оплата:</b>
+Мы используем Telegram Stars — универсальную валюту Telegram.
+"""
+            await send_telegram_message(chat_id, help_text)
+        
+        elif text == "/business":
+            business_text = """
+💼 <b>Бизнес-панель</b>
+
+Открой приложение и перейди в раздел "Бизнес" для:
+• Верификации бизнеса
+• Создания объявлений
+• Управления бустами
+• Просмотра статистики
+"""
+            await send_telegram_message(
+                chat_id,
+                business_text,
+                {
+                    "inline_keyboard": [[
+                        {"text": "📊 Бизнес-панель", "web_app": {"url": WEBAPP_URL}}
+                    ]]
+                }
+            )
+    
+    return {"ok": True}
+
+@app.get("/api/telegram/set-webhook")
+async def set_telegram_webhook(webhook_url: str = Query(...)):
+    """Установить webhook URL для Telegram бота"""
+    if not TELEGRAM_BOT_TOKEN:
+        raise HTTPException(status_code=400, detail="Bot token not configured")
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/setWebhook",
+            json={"url": webhook_url}
+        )
+        return response.json()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
