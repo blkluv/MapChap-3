@@ -1163,6 +1163,7 @@ class TelegramUpdate(BaseModel):
     update_id: int
     message: Optional[dict] = None
     callback_query: Optional[dict] = None
+    pre_checkout_query: Optional[dict] = None  # Для подтверждения платежа
 
 async def send_telegram_message(chat_id: int, text: str, reply_markup: dict = None):
     """Отправить сообщение в Telegram"""
