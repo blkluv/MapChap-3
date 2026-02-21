@@ -8,7 +8,7 @@
     ></div>
 
     <!-- Панели -->
-    <div class="side-panels">
+    <div class="side-panels" @click.stop>
       <ProfilePanel v-if="activePanel === 'profile'" />
       <BusinessPanel v-if="activePanel === 'business'" />
       <BlogPanel v-if="activePanel === 'blog'" />
