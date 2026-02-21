@@ -855,12 +855,9 @@ export default {
             verificationType: 'manual'
           })
           
-          // Пытаемся синхронизировать с сервером
-          await authStore.fetchUser()
-          
           showNotification('Бизнес-аккаунт активирован!', 'success')
           
-          // Переходим к созданию объявления
+          // Переходим к созданию объявления через 1 секунду
           setTimeout(() => {
             goToCreateOffer()
           }, 1000)
