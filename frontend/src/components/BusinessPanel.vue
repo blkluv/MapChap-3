@@ -827,7 +827,7 @@ export default {
             offerForm.address = result.verification.address
           }
           
-          // Переходим к созданию объявления
+          // Переходим к созданию объявления через 1 секунду
           setTimeout(() => {
             goToCreateOffer()
           }, 1000)
