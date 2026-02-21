@@ -785,9 +785,9 @@ class PaymentDetails(BaseModel):
 # Boost plans configuration with Telegram Stars pricing
 # 1 Star ≈ $0.02 USD
 BOOST_PLANS = {
-    "1day": {"days": 1, "name": "1 День", "price": 50, "currency": "XTR", "description": "Буст на 1 день + Push-уведомления"},
-    "5days": {"days": 5, "name": "5 Дней", "price": 200, "currency": "XTR", "description": "Буст на 5 дней + Push + Популярное"},
-    "7days": {"days": 7, "name": "7 Дней", "price": 300, "currency": "XTR", "description": "Буст на 7 дней + Push + VIP статус"}
+    "1day": {"days": 1, "name": "1 День", "price": 350, "currency": "XTR", "description": "Буст на 1 день + Push-уведомления"},
+    "5days": {"days": 5, "name": "5 Дней", "price": 1200, "currency": "XTR", "description": "Буст на 5 дней + Push + Популярное"},
+    "7days": {"days": 7, "name": "7 Дней", "price": 1600, "currency": "XTR", "description": "Буст на 7 дней + Push + VIP статус"}
 }
 
 # Provider tokens for different countries (Telegram Payments)
