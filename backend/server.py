@@ -1071,13 +1071,19 @@ async def create_telegram_invoice(data: CreateInvoiceRequest):
                         "title": invoice_data["title"],
                         "description": invoice_data["description"],
                         "payload": invoice_data["payload"],
+                        "provider_token": "",  # Пустой для Stars
                         "currency": "XTR",
                         "prices": invoice_data["prices"]
-                    }
+                    },
+                    timeout=30
                 )
                 result = response.json()
+                print(f"Telegram API response: {result}")
                 if result.get("ok"):
                     invoice_data["invoice_link"] = result["result"]
+                else:
+                    print(f"Telegram API error: {result}")
+                    invoice_data["error"] = result.get("description", "Unknown error")
         except Exception as e:
             print(f"Telegram API error: {e}")
     
