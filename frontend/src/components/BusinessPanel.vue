@@ -709,9 +709,9 @@ export default {
     const activeBoosts = ref([])
     
     const boostPlans = ref([
-      { id: '1day', days: 1, price: 50, currency: 'XTR', popular: false },
-      { id: '5days', days: 5, price: 200, currency: 'XTR', popular: true },
-      { id: '7days', days: 7, price: 300, currency: 'XTR', popular: false }
+      { id: '1day', days: 1, price: 350, currency: 'XTR', popular: false },
+      { id: '5days', days: 5, price: 1200, currency: 'XTR', popular: true },
+      { id: '7days', days: 7, price: 1600, currency: 'XTR', popular: false }
     ])
 
     const userOffers = computed(() => businessStore.userOffers || [])
