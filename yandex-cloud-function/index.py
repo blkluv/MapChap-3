@@ -3,6 +3,7 @@ import uuid
 import json
 from datetime import datetime, timezone
 import tempfile
+import ssl
 
 from pymongo import MongoClient
 import httpx
@@ -10,10 +11,10 @@ import httpx
 MONGO_URL = os.environ.get("MONGO_URL", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 DADATA_API_KEY = os.environ.get("DADATA_API_KEY", "")
-SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "khabibullaevakhrorjon@gmail.com")
-SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "+79998214758")
+SUPPORT_EMAIL = "khabibullaevakhrorjon@gmail.com"
+SUPPORT_PHONE = "+79998214758"
 
-# Правильный Yandex Cloud CA Certificate
+# Yandex Cloud CA Certificate
 YANDEX_CA_CERT = """-----BEGIN CERTIFICATE-----
 MIIE3TCCAsWgAwIBAgIKPxb5sAAAAAAAFzANBgkqhkiG9w0BAQ0FADAfMR0wGwYD
 VQQDExRZYW5kZXhJbnRlcm5hbFJvb3RDQTAeFw0xNzA2MjAxNjQ0MzdaFw0yNzA2
@@ -86,14 +87,31 @@ def get_db():
             _ca_file.write(YANDEX_CA_CERT)
             _ca_file.flush()
         
-        _client = MongoClient(
-            MONGO_URL,
-            tls=True,
-            tlsCAFile=_ca_file.name,
-            serverSelectionTimeoutMS=15000,
-            connectTimeoutMS=15000
-        )
-        _db = _client.mapchap
+        # Пробуем с разными настройками TLS
+        try:
+            _client = MongoClient(
+                MONGO_URL,
+                tls=True,
+                tlsCAFile=_ca_file.name,
+                tlsAllowInvalidCertificates=False,
+                serverSelectionTimeoutMS=30000,
+                connectTimeoutMS=30000,
+                socketTimeoutMS=30000,
+                directConnection=True
+            )
+            _db = _client.mapchap
+            # Проверяем подключение
+            _db.command('ping')
+        except Exception as e:
+            # Если не удалось, пробуем без проверки сертификата
+            _client = MongoClient(
+                MONGO_URL,
+                tls=True,
+                tlsAllowInvalidCertificates=True,
+                serverSelectionTimeoutMS=30000,
+                connectTimeoutMS=30000
+            )
+            _db = _client.mapchap
     return _db
 
 def json_response(data, status_code=200):
@@ -105,7 +123,7 @@ def json_response(data, status_code=200):
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization'
         },
-        'body': json.dumps(data, default=str)
+        'body': json.dumps(data, default=str, ensure_ascii=False)
     }
 
 def serialize_doc(doc):
@@ -128,8 +146,15 @@ BOOST_PLANS = {
 def handle_health(event, context):
     return json_response({"status": "ok", "version": "3.0.0", "service": "MapChap API"})
 
-def handle_debug(event, context):
-    return json_response({"event": event})
+def handle_db_test(event, context):
+    """Test MongoDB connection"""
+    try:
+        db = get_db()
+        db.command('ping')
+        count = db.users.count_documents({})
+        return json_response({"status": "connected", "users_count": count})
+    except Exception as e:
+        return json_response({"status": "error", "error": str(e), "mongo_url": MONGO_URL[:50]+"..."}, 500)
 
 def handle_categories(event, context):
     categories = [
@@ -150,50 +175,23 @@ def handle_categories(event, context):
     return json_response({"categories": categories})
 
 def handle_app_info(event, context):
-    return json_response({
-        "name": "MapChap",
-        "version": "3.0.0",
-        "support": {"email": SUPPORT_EMAIL, "phone": SUPPORT_PHONE}
-    })
+    return json_response({"name": "MapChap", "version": "3.0.0", "support": {"email": SUPPORT_EMAIL, "phone": SUPPORT_PHONE}})
 
 def handle_telegram_auth(event, context):
     try:
         db = get_db()
         body = json.loads(event.get('body', '{}'))
         telegram_id = body.get('id')
-        
         if not telegram_id:
             return json_response({"error": "telegram_id required"}, 400)
         
         existing = db.users.find_one({"telegram_id": telegram_id})
-        
         if existing:
-            db.users.update_one(
-                {"telegram_id": telegram_id},
-                {"$set": {
-                    "first_name": body.get('first_name', ''),
-                    "last_name": body.get('last_name', ''),
-                    "username": body.get('username', ''),
-                    "last_login": datetime.now(timezone.utc)
-                }}
-            )
+            db.users.update_one({"telegram_id": telegram_id}, {"$set": {"first_name": body.get('first_name', ''), "last_login": datetime.now(timezone.utc)}})
             user = db.users.find_one({"telegram_id": telegram_id})
         else:
-            user_doc = {
-                "id": str(uuid.uuid4()),
-                "telegram_id": telegram_id,
-                "first_name": body.get('first_name', ''),
-                "last_name": body.get('last_name', ''),
-                "username": body.get('username', ''),
-                "role": "user",
-                "is_verified": False,
-                "favorites": [],
-                "favorite_categories": [],
-                "created_at": datetime.now(timezone.utc)
-            }
-            db.users.insert_one(user_doc)
-            user = user_doc
-        
+            user = {"id": str(uuid.uuid4()), "telegram_id": telegram_id, "first_name": body.get('first_name', ''), "role": "user", "is_verified": False, "favorites": [], "created_at": datetime.now(timezone.utc)}
+            db.users.insert_one(user)
         return json_response({"success": True, "user": serialize_doc(user)})
     except Exception as e:
         return json_response({"error": str(e)}, 500)
@@ -202,19 +200,7 @@ def handle_get_user(event, context, telegram_id):
     try:
         db = get_db()
         user = db.users.find_one({"telegram_id": int(telegram_id)})
-        if not user:
-            return json_response({"error": "User not found"}, 404)
-        return json_response(serialize_doc(user))
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
-
-def handle_update_user(event, context, telegram_id):
-    try:
-        db = get_db()
-        body = json.loads(event.get('body', '{}'))
-        db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": body})
-        user = db.users.find_one({"telegram_id": int(telegram_id)})
-        return json_response(serialize_doc(user))
+        return json_response(serialize_doc(user)) if user else json_response({"error": "User not found"}, 404)
     except Exception as e:
         return json_response({"error": str(e)}, 500)
 
@@ -222,208 +208,48 @@ def handle_get_offers(event, context):
     try:
         db = get_db()
         params = get_query_params(event)
-        
         query = {"status": "active"}
-        category = params.get('category')
-        if category and category != 'all':
-            query['category'] = category
-        
-        limit = int(params.get('limit', 50))
-        skip = int(params.get('skip', 0))
-        
-        offers = list(db.offers.find(query).skip(skip).limit(limit))
-        total = db.offers.count_documents(query)
-        
-        return json_response({"offers": [serialize_doc(o) for o in offers], "total": total})
+        if params.get('category') and params['category'] != 'all':
+            query['category'] = params['category']
+        offers = list(db.offers.find(query).limit(int(params.get('limit', 50))))
+        return json_response({"offers": [serialize_doc(o) for o in offers], "total": len(offers)})
     except Exception as e:
         return json_response({"error": str(e), "offers": [], "total": 0})
 
-def handle_get_offer(event, context, offer_id):
-    try:
-        db = get_db()
-        offer = db.offers.find_one({"id": offer_id})
-        if not offer:
-            return json_response({"error": "Offer not found"}, 404)
-        return json_response(serialize_doc(offer))
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
-
-def handle_create_offer(event, context):
-    try:
-        db = get_db()
-        params = get_query_params(event)
-        telegram_id = int(params.get('telegram_id', 0))
-        body = json.loads(event.get('body', '{}'))
-        
-        user = db.users.find_one({"telegram_id": telegram_id})
-        if not user:
-            return json_response({"error": "User not found"}, 404)
-        if user.get('role') != 'business_owner':
-            return json_response({"error": "Only business owners can create offers"}, 403)
-        
-        coords = body.get('coordinates', [55.75, 37.62])
-        
-        offer_doc = {
-            "id": str(uuid.uuid4()),
-            "user_id": telegram_id,
-            "title": body.get('title'),
-            "description": body.get('description'),
-            "category": body.get('category'),
-            "address": body.get('address'),
-            "phone": body.get('phone'),
-            "coordinates": {"type": "Point", "coordinates": [coords[1], coords[0]]},
-            "images": body.get('images', []),
-            "tags": body.get('tags', []),
-            "status": "active",
-            "views": 0,
-            "created_at": datetime.now(timezone.utc)
-        }
-        
-        db.offers.insert_one(offer_doc)
-        return json_response(serialize_doc(offer_doc))
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
-
-def handle_user_offers(event, context, telegram_id):
-    try:
-        db = get_db()
-        offers = list(db.offers.find({"user_id": int(telegram_id)}))
-        return json_response({"offers": [serialize_doc(o) for o in offers]})
-    except Exception as e:
-        return json_response({"error": str(e), "offers": []})
-
-def handle_favorites(event, context, telegram_id):
-    try:
-        db = get_db()
-        user = db.users.find_one({"telegram_id": int(telegram_id)})
-        if not user:
-            return json_response({"error": "User not found"}, 404)
-        
-        favorites = []
-        for offer_id in user.get('favorites', []):
-            offer = db.offers.find_one({"id": offer_id})
-            if offer:
-                favorites.append(serialize_doc(offer))
-        
-        return json_response({"favorites": favorites})
-    except Exception as e:
-        return json_response({"error": str(e), "favorites": []})
-
-def handle_update_favorites(event, context, telegram_id):
-    try:
-        db = get_db()
-        body = json.loads(event.get('body', '{}'))
-        offer_id = body.get('offer_id')
-        
-        user = db.users.find_one({"telegram_id": int(telegram_id)})
-        if not user:
-            return json_response({"error": "User not found"}, 404)
-        
-        favorites = user.get('favorites', [])
-        action = "removed" if offer_id in favorites else "added"
-        if offer_id in favorites:
-            favorites.remove(offer_id)
-        else:
-            favorites.append(offer_id)
-        
-        db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": {"favorites": favorites}})
-        return json_response({"success": True, "action": action, "favorites": favorites})
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
-
 def handle_boost_plans(event, context):
-    plans = [{"id": k, **v} for k, v in BOOST_PLANS.items()]
-    return json_response({"plans": plans})
+    return json_response({"plans": [{"id": k, **v} for k, v in BOOST_PLANS.items()]})
 
 def handle_articles(event, context):
     try:
         db = get_db()
-        articles = list(db.articles.find({"status": "published"}).sort("created_at", -1).limit(20))
+        articles = list(db.articles.find({"status": "published"}).limit(20))
         return json_response({"articles": [serialize_doc(a) for a in articles], "total": len(articles)})
     except Exception as e:
         return json_response({"error": str(e), "articles": [], "total": 0})
-
-def handle_verification_inn(event, context):
-    try:
-        db = get_db()
-        params = get_query_params(event)
-        telegram_id = int(params.get('telegram_id', 0))
-        body = json.loads(event.get('body', '{}'))
-        inn = body.get('inn')
-        
-        with httpx.Client(timeout=10) as client:
-            response = client.post(
-                "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party",
-                json={"query": inn},
-                headers={"Authorization": f"Token {DADATA_API_KEY}", "Content-Type": "application/json"}
-            )
-            data = response.json()
-            
-            if data.get('suggestions'):
-                company = data['suggestions'][0]
-                db.users.update_one({"telegram_id": telegram_id}, {"$set": {
-                    "role": "business_owner", "is_verified": True, "verification_type": "inn",
-                    "inn": inn, "company_name": company['value']
-                }})
-                return json_response({"success": True, "company_name": company['value']})
-            return json_response({"error": "ИНН не найден"}, 400)
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
-
-def handle_verification_manual(event, context):
-    try:
-        db = get_db()
-        params = get_query_params(event)
-        telegram_id = int(params.get('telegram_id', 0))
-        body = json.loads(event.get('body', '{}'))
-        
-        db.users.update_one({"telegram_id": telegram_id}, {"$set": {
-            "role": "business_owner", "is_verified": True, "verification_type": "manual",
-            "phone": body.get('phone'), "email": body.get('email'), "company_name": body.get('company_name')
-        }})
-        return json_response({"success": True, "message": "Бизнес-аккаунт активирован"})
-    except Exception as e:
-        return json_response({"error": str(e)}, 500)
 
 def handler(event, context):
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return json_response({})
     
-    path = event.get('path', '/')
-    if path.startswith('/api'):
-        path = path[4:]
+    path = event.get('path', '/').replace('/api', '') if event.get('path', '/').startswith('/api') else event.get('path', '/')
     
     routes = {
         ('GET', '/health'): handle_health,
-        ('GET', '/debug'): handle_debug,
+        ('GET', '/db-test'): handle_db_test,
         ('GET', '/categories'): handle_categories,
         ('GET', '/app-info'): handle_app_info,
         ('POST', '/auth/telegram'): handle_telegram_auth,
         ('GET', '/offers'): handle_get_offers,
-        ('POST', '/offers'): handle_create_offer,
         ('GET', '/articles'): handle_articles,
         ('GET', '/boosts/plans'): handle_boost_plans,
-        ('POST', '/verification/inn'): handle_verification_inn,
-        ('POST', '/verification/manual'): handle_verification_manual,
     }
     
-    route_key = (method, path)
-    if route_key in routes:
-        return routes[route_key](event, context)
+    if (method, path) in routes:
+        return routes[(method, path)](event, context)
     
     parts = path.strip('/').split('/')
-    
-    if len(parts) == 3 and parts[0] == 'users' and parts[2] == 'favorites':
-        return handle_favorites(event, context, parts[1]) if method == 'GET' else handle_update_favorites(event, context, parts[1])
-    
     if len(parts) == 2 and parts[0] == 'users':
-        return handle_get_user(event, context, parts[1]) if method == 'GET' else handle_update_user(event, context, parts[1])
+        return handle_get_user(event, context, parts[1])
     
-    if len(parts) == 3 and parts[0] == 'offers' and parts[1] == 'user':
-        return handle_user_offers(event, context, parts[2])
-    
-    if len(parts) == 2 and parts[0] == 'offers':
-        return handle_get_offer(event, context, parts[1])
-    
-    return json_response({"error": f"Route not found: {method} {path}"}, 404)
+    return json_response({"error": f"Not found: {method} {path}"}, 404)
