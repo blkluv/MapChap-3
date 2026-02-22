@@ -267,8 +267,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
-import { apiService } from '@/services/api'
+import { useAuthStore } from '../stores/authStore'
+import { apiService } from '../services/api'
 
 const router = useRouter()
 const authStore = useAuthStore()
