@@ -1,0 +1,305 @@
+{
+  "total_tests": 8,
+  "passed_tests": 8,
+  "success_rate": 100.0,
+  "critical_failures": [],
+  "non_critical_failures": [],
+  "test_details": [
+    {
+      "name": "Health Check",
+      "success": true,
+      "details": "Status: ok, Version: 3.0.0",
+      "response_data": {
+        "status": "ok",
+        "version": "3.0.0",
+        "service": "MapChap API (Yandex Cloud)"
+      }
+    },
+    {
+      "name": "Telegram Auth API",
+      "success": true,
+      "details": "User created: Test (ID: 107718832)",
+      "response_data": {
+        "success": true,
+        "user": {
+          "id": "e39c9249-51d0-457a-b3f2-6a77ccbac010",
+          "telegram_id": 107718832,
+          "first_name": "Test",
+          "last_name": "User",
+          "username": "test_user",
+          "photo_url": "",
+          "role": "user",
+          "is_verified": false,
+          "favorites": [],
+          "favorite_categories": [],
+          "created_at": "2026-02-22 19:24:18.805705+00:00",
+          "_id": "699b57e2b0d33e665ed727e8"
+        }
+      }
+    },
+    {
+      "name": "INN Verification API",
+      "success": true,
+      "details": "Company: Бизнес ИНН 7707083893, INN: 7707083893",
+      "response_data": {
+        "success": true,
+        "verification": {
+          "inn": "7707083893",
+          "name": "Бизнес ИНН 7707083893",
+          "address": null,
+          "status": "ACTIVE"
+        },
+        "message": "Верификация пройдена (упрощённая)"
+      }
+    },
+    {
+      "name": "Manual Verification API",
+      "success": true,
+      "details": "Manual verification successful: Бизнес-аккаунт активирован",
+      "response_data": {
+        "success": true,
+        "message": "Бизнес-аккаунт активирован"
+      }
+    },
+    {
+      "name": "Create Offer API",
+      "success": true,
+      "details": "Offer created: Test Coffee Shop (ID: d5b626e7-5b88-430c-8790-97c3b7edf98d), Coordinates: [55.751244, 37.618423]",
+      "response_data": {
+        "id": "d5b626e7-5b88-430c-8790-97c3b7edf98d",
+        "user_id": 107718832,
+        "title": "Test Coffee Shop",
+        "description": "Best coffee in town for testing",
+        "full_description": "A comprehensive description of our test coffee shop with all amenities",
+        "category": "food",
+        "address": "Тестовая улица, 123, Москва",
+        "phone": "+7 999 123 45 67",
+        "email": "test@coffeeshop.com",
+        "website": "https://testcoffee.com",
+        "working_hours": "9:00-21:00",
+        "coordinates": [
+          55.751244,
+          37.618423
+        ],
+        "images": [],
+        "tags": [
+          "coffee",
+          "breakfast",
+          "cozy"
+        ],
+        "amenities": [
+          "wifi",
+          "parking",
+          "card_payment"
+        ],
+        "status": "active",
+        "views": 0,
+        "likes": 0,
+        "created_at": "2026-02-22 19:24:20.860253+00:00",
+        "_id": "699b57e4b0d33e665ed727e9"
+      }
+    },
+    {
+      "name": "Get User Offers API",
+      "success": true,
+      "details": "Found 1 offers for user, 1 created offers found",
+      "response_data": {
+        "offers": [
+          {
+            "_id": "699b57e4b0d33e665ed727e9",
+            "id": "d5b626e7-5b88-430c-8790-97c3b7edf98d",
+            "user_id": 107718832,
+            "title": "Test Coffee Shop",
+            "description": "Best coffee in town for testing",
+            "full_description": "A comprehensive description of our test coffee shop with all amenities",
+            "category": "food",
+            "address": "Тестовая улица, 123, Москва",
+            "phone": "+7 999 123 45 67",
+            "email": "test@coffeeshop.com",
+            "website": "https://testcoffee.com",
+            "working_hours": "9:00-21:00",
+            "coordinates": [
+              55.751244,
+              37.618423
+            ],
+            "images": [],
+            "tags": [
+              "coffee",
+              "breakfast",
+              "cozy"
+            ],
+            "amenities": [
+              "wifi",
+              "parking",
+              "card_payment"
+            ],
+            "status": "active",
+            "views": 0,
+            "likes": 0,
+            "created_at": "2026-02-22 19:24:20.860000"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get All Offers API",
+      "success": true,
+      "details": "Found 2 offers (total: 2), 2 with valid coordinates",
+      "response_data": {
+        "offers": [
+          {
+            "_id": "699b5783b0d33e665ed727e7",
+            "id": "07c2d231-d69a-4c25-8fb2-a9ffd3a5b80b",
+            "user_id": 888777666,
+            "title": "Кафе Тест",
+            "description": "Уютное кафе с домашней едой",
+            "full_description": "",
+            "category": "food",
+            "address": "Москва, Арбат 10",
+            "phone": "+7 999 111-22-33",
+            "email": "",
+            "website": "",
+            "working_hours": "",
+            "coordinates": [
+              55.752,
+              37.5912
+            ],
+            "images": [],
+            "tags": [],
+            "amenities": [],
+            "status": "active",
+            "views": 0,
+            "likes": 0,
+            "created_at": "2026-02-22 19:22:43.797000"
+          },
+          {
+            "_id": "699b57e4b0d33e665ed727e9",
+            "id": "d5b626e7-5b88-430c-8790-97c3b7edf98d",
+            "user_id": 107718832,
+            "title": "Test Coffee Shop",
+            "description": "Best coffee in town for testing",
+            "full_description": "A comprehensive description of our test coffee shop with all amenities",
+            "category": "food",
+            "address": "Тестовая улица, 123, Москва",
+            "phone": "+7 999 123 45 67",
+            "email": "test@coffeeshop.com",
+            "website": "https://testcoffee.com",
+            "working_hours": "9:00-21:00",
+            "coordinates": [
+              55.751244,
+              37.618423
+            ],
+            "images": [],
+            "tags": [
+              "coffee",
+              "breakfast",
+              "cozy"
+            ],
+            "amenities": [
+              "wifi",
+              "parking",
+              "card_payment"
+            ],
+            "status": "active",
+            "views": 0,
+            "likes": 0,
+            "created_at": "2026-02-22 19:24:20.860000"
+          }
+        ],
+        "total": 2
+      }
+    },
+    {
+      "name": "Categories API",
+      "success": true,
+      "details": "Found 13 categories",
+      "response_data": {
+        "categories": [
+          {
+            "id": "food",
+            "name": "Еда и рестораны",
+            "icon": "🍕",
+            "color": "#FF6B6B"
+          },
+          {
+            "id": "shopping",
+            "name": "Магазины",
+            "icon": "🛍️",
+            "color": "#4ECDC4"
+          },
+          {
+            "id": "grocery",
+            "name": "Продукты",
+            "icon": "🛒",
+            "color": "#22C55E"
+          },
+          {
+            "id": "beauty",
+            "name": "Салоны красоты",
+            "icon": "💄",
+            "color": "#FFD166"
+          },
+          {
+            "id": "services",
+            "name": "Услуги",
+            "icon": "🔧",
+            "color": "#06D6A0"
+          },
+          {
+            "id": "medical",
+            "name": "Медицина",
+            "icon": "⚕️",
+            "color": "#118AB2"
+          },
+          {
+            "id": "furniture",
+            "name": "Мебель и декор",
+            "icon": "🛋️",
+            "color": "#073B4C"
+          },
+          {
+            "id": "pharmacy",
+            "name": "Аптеки",
+            "icon": "💊",
+            "color": "#EF476F"
+          },
+          {
+            "id": "fitness",
+            "name": "Фитнес клубы",
+            "icon": "💪",
+            "color": "#F97316"
+          },
+          {
+            "id": "entertainment",
+            "name": "Развлечения",
+            "icon": "🎭",
+            "color": "#7209B7"
+          },
+          {
+            "id": "education",
+            "name": "Образование",
+            "icon": "📚",
+            "color": "#F72585"
+          },
+          {
+            "id": "auto",
+            "name": "Автосервисы",
+            "icon": "🚗",
+            "color": "#4361EE"
+          },
+          {
+            "id": "hotel",
+            "name": "Отели",
+            "icon": "🏨",
+            "color": "#4CC9F0"
+          }
+        ]
+      }
+    }
+  ],
+  "timestamp": "2026-02-22T19:24:22.623906",
+  "test_user_id": 107718832,
+  "created_offers": [
+    "d5b626e7-5b88-430c-8790-97c3b7edf98d"
+  ]
+}
