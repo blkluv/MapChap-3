@@ -489,12 +489,22 @@ def handle_get_offers(event, context):
 def handle_get_offer(event, context, offer_id):
     try:
         db = get_db()
+        params = get_query_params(event)
+        viewer_id = params.get('telegram_id')
+        
         offer = db.offers.find_one({"id": offer_id})
         if not offer:
             return json_response({"error": "Offer not found"}, 404)
         
         # Increment views
         db.offers.update_one({"id": offer_id}, {"$inc": {"views": 1}})
+        
+        # Отправляем push-уведомление владельцу (асинхронно, не блокируем ответ)
+        try:
+            notify_new_view(offer_id, int(viewer_id) if viewer_id else None)
+        except:
+            pass
+        
         return json_response(serialize_doc(offer))
     except Exception as e:
         return json_response({"error": str(e)}, 500)
