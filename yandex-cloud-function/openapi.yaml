@@ -115,13 +115,13 @@ paths:
 
   # ==================== USERS ====================
   /api/users/{telegram_id}:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -130,12 +130,6 @@ paths:
         '200':
           description: OK
     put:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -156,13 +150,13 @@ paths:
 
   # ==================== FAVORITES ====================
   /api/users/{telegram_id}/favorites:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -171,12 +165,6 @@ paths:
         '200':
           description: OK
     put:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -225,13 +213,13 @@ paths:
           Access-Control-Allow-Headers: '*'
 
   /api/offers/user/{telegram_id}:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -251,13 +239,13 @@ paths:
           Access-Control-Allow-Headers: '*'
 
   /api/offers/{offer_id}:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: offer_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -266,12 +254,6 @@ paths:
         '200':
           description: OK
     put:
-      parameters:
-        - name: offer_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -280,12 +262,6 @@ paths:
         '200':
           description: OK
     delete:
-      parameters:
-        - name: offer_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -305,13 +281,13 @@ paths:
           Access-Control-Allow-Headers: '*'
 
   /api/offers/{offer_id}/boost:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
     post:
-      parameters:
-        - name: offer_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -332,13 +308,13 @@ paths:
 
   # ==================== ANALYTICS ====================
   /api/analytics/dashboard/{telegram_id}:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: telegram_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
@@ -358,13 +334,13 @@ paths:
           Access-Control-Allow-Headers: '*'
 
   /api/analytics/offer/{offer_id}:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
-      parameters:
-        - name: offer_id
-          in: path
-          required: true
-          schema:
-            type: string
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
