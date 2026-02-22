@@ -58,8 +58,30 @@ export const useBusinessStore = defineStore('business', () => {
     
     console.log('📝 Creating offer:', offerData.title)
     
+    // Геокодирование адреса через Yandex Geocoder
+    let coordinates = offerData.coordinates || [offerData.lat || 55.751244, offerData.lng || 37.618423]
+    
+    if (offerData.address && window.ymaps) {
+      try {
+        const result = await window.ymaps.geocode(offerData.address, { results: 1 })
+        const geoObject = result.geoObjects.get(0)
+        if (geoObject) {
+          const coords = geoObject.geometry.getCoordinates()
+          coordinates = coords
+          console.log('📍 Geocoded address:', offerData.address, '->', coords)
+        }
+      } catch (e) {
+        console.log('⚠️ Geocoding failed, using default coordinates')
+      }
+    }
+    
+    const dataToSend = {
+      ...offerData,
+      coordinates: coordinates
+    }
+    
     try {
-      const result = await apiService.createOffer(authStore.user.telegram_id, offerData)
+      const result = await apiService.createOffer(authStore.user.telegram_id, dataToSend)
       console.log('✅ Offer created:', result)
       userOffers.value.push(result)
       return result
@@ -68,7 +90,7 @@ export const useBusinessStore = defineStore('business', () => {
       // Добавляем локально только если это ошибка сети
       const newOffer = {
         id: String(Date.now()),
-        ...offerData,
+        ...dataToSend,
         user_id: authStore.user.telegram_id,
         status: 'active',
         views: 0,
