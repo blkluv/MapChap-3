@@ -771,6 +771,11 @@ export default {
 
     const initAuth = () => authStore.initTelegramAuth()
     
+    const goToAnalytics = () => {
+      closePanel()
+      router.push('/analytics')
+    }
+    
     const handleBack = () => {
       if (currentStep.value === 'create-offer') {
         currentStep.value = 'dashboard'
