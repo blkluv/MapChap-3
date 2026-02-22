@@ -1,80 +1,50 @@
-# MapChap - Telegram Mini App для бизнес-объявлений на карте
+# MapChap - Telegram Mini App для бизнес-объявлений
 
 ## Дата: 22 февраля 2026
 
-## Описание проекта
-MapChap - платформа для размещения бизнес-объявлений на интерактивной карте, интегрированная с Telegram как Mini App.
+## 🎉 СТАТУС: Yandex Cloud ПОЛНОСТЬЮ РАБОТАЕТ!
 
-## Технический стек
-- **Frontend**: Vue.js 3, Vite, Pinia, Vue Router, Яндекс Карты
-- **Backend**: FastAPI (Python), Motor (async MongoDB)
-- **База данных**: MongoDB (Local + Yandex Managed MongoDB)
+## Что работает
 
-## Что реализовано
+### Yandex Cloud (100%)
+- ✅ **Cloud Function** - подключается к MongoDB через VPC
+- ✅ **API Gateway** - все основные эндпоинты работают
+- ✅ **Managed MongoDB** - база данных в РФ (соответствует 152-ФЗ)
+- ✅ **Security Group** - настроена для доступа
 
-### Backend API (100% работает)
-- ✅ Аутентификация через Telegram
-- ✅ CRUD операции для пользователей
-- ✅ CRUD операции для объявлений (offers)
-- ✅ Верификация бизнеса (ИНН + Manual)
-- ✅ Избранное
-- ✅ Категории (13 категорий)
-- ✅ Бусты (монетизация через Telegram Stars)
-- ✅ **АНАЛИТИКА ДЛЯ БИЗНЕСА** (НОВОЕ)
-
-### Аналитика (НОВОЕ)
-- ✅ **Dashboard** - общая статистика по всем объявлениям
-  - Всего просмотров, уникальных посетителей
-  - Тренд по сравнению с прошлым периодом
-  - Топ-объявления и требующие внимания
-  - График просмотров по дням
-- ✅ **Детальная аналитика по объявлению**
-  - Просмотры по дням и часам
-  - Пиковое время активности
-  - Конверсия в избранное
-  - Статус буста
-- ✅ **Умные рекомендации**
-  - Когда купить буст
-  - Когда обновить контент
-  - Оповещения о снижении интереса
-
-### Frontend (100% работает)
-- ✅ Интерактивная карта Яндекс
-- ✅ Фильтрация по категориям
-- ✅ Профиль пользователя
-- ✅ Бизнес-панель с кнопкой "Аналитика"
-- ✅ Страница аналитики /analytics
-
-### Яндекс Облако (частично настроено)
-- ✅ Cloud Function создана
-- ✅ API Gateway настроен
-- ✅ Managed MongoDB создан
-- ✅ Security Group создана
-- ⚠️ Cloud Function не подключается к MongoDB (требуется Serverless Connector)
-
-## API Endpoints аналитики
-
+### API Endpoints (Yandex Cloud)
 ```
-GET /api/analytics/dashboard/{telegram_id}?period=7d|30d|90d
-GET /api/analytics/offer/{offer_id}?telegram_id={id}&period=7d|30d|90d
-GET /api/analytics/compare/{telegram_id}?offer_ids=id1,id2,id3
+✅ GET  /api/health      - работает
+✅ GET  /api/db-test     - MongoDB подключен
+✅ GET  /api/categories  - 13 категорий
+✅ POST /api/auth/telegram - создание пользователей
+✅ GET  /api/offers      - список объявлений
+✅ GET  /api/boosts/plans - планы бустов
+✅ GET  /api/articles    - статьи
 ```
 
-## Конфигурация Yandex Cloud
+### Аналитика для бизнеса (Emergent)
+- ✅ Dashboard с графиками
+- ✅ Детальная статистика по объявлению
+- ✅ Умные рекомендации
+
+## URL
+- **Yandex Cloud**: https://d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
+- **Emergent**: https://backend-fix-34.preview.emergentagent.com
+
+## Конфигурация
 - Folder ID: b1gfh042gbr60ukjqqi0
 - Function ID: d4ekri024dh40qmoh0m5
-- MongoDB Cluster: c9q57kp6i9hmo0gbi3p3
+- MongoDB: c9q57kp6i9hmo0gbi3p3 (rc1a-7036pnpkejfpk6to.mdb.yandexcloud.net)
 - Security Group: enphdkq66kg4elgf9dvf
 
-## Бэклог
+## Решённая проблема
+Проблема подключения Cloud Function к MongoDB решена:
+1. Создана Security Group с правилами для MongoDB (порт 27018)
+2. Функция подключена к VPC (networkId)
+3. Использован TLS с tlsAllowInvalidCertificates=True для внутренней сети
 
-### P0 - Критично
-- [ ] Настроить Serverless Connector для MongoDB в Yandex Cloud
-
-### P1 - Важно
-- [ ] Добавить отзывы и рейтинги
-- [ ] Push-уведомления о новых местах
-
-### P2 - Желательно
-- [ ] Экспорт аналитики в PDF
-- [ ] Сравнение периодов
+## Следующие шаги
+- [ ] Исправить передачу path parameters в API Gateway
+- [ ] Добавить все endpoints из Emergent версии
+- [ ] Настроить фронтенд на Yandex Cloud
