@@ -959,6 +959,393 @@ async def send_boost_notification(boost_id: str, telegram_id: int = Query(...)):
         "message": f"Отправлено {notifications_sent} уведомлений"
     }
 
+# ===================== ANALYTICS =====================
+
+class AnalyticsPeriod(BaseModel):
+    start_date: Optional[str] = None  # ISO format
+    end_date: Optional[str] = None
+
+@app.get("/api/analytics/offer/{offer_id}")
+async def get_offer_analytics(
+    offer_id: str,
+    telegram_id: int = Query(...),
+    period: str = Query("30d", description="7d, 30d, 90d, all")
+):
+    """Детальная аналитика для конкретного объявления"""
+    # Проверяем владельца
+    offer = await db.offers.find_one({"id": offer_id})
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    if offer.get("user_id") != telegram_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Определяем период
+    from datetime import timedelta, timezone
+    now = datetime.now(timezone.utc)
+    if period == "7d":
+        start_date = now - timedelta(days=7)
+    elif period == "30d":
+        start_date = now - timedelta(days=30)
+    elif period == "90d":
+        start_date = now - timedelta(days=90)
+    else:
+        start_date = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    
+    # Получаем просмотры за период
+    views_cursor = db.view_history.find({
+        "offer_id": offer_id,
+        "viewed_at": {"$gte": start_date}
+    }).sort("viewed_at", -1)
+    
+    views_list = []
+    async for view in views_cursor:
+        views_list.append(view)
+    
+    total_views = len(views_list)
+    
+    # Уникальные посетители
+    unique_visitors = len(set(v.get("user_id") for v in views_list))
+    
+    # Просмотры по дням
+    views_by_day = {}
+    for view in views_list:
+        day = view["viewed_at"].strftime("%Y-%m-%d")
+        views_by_day[day] = views_by_day.get(day, 0) + 1
+    
+    # Просмотры по часам (для понимания активного времени)
+    views_by_hour = {str(i): 0 for i in range(24)}
+    for view in views_list:
+        hour = str(view["viewed_at"].hour)
+        views_by_hour[hour] = views_by_hour.get(hour, 0) + 1
+    
+    # Пиковый час
+    peak_hour = max(views_by_hour, key=views_by_hour.get) if views_by_hour else "12"
+    
+    # Средние просмотры в день
+    days_count = max((now - start_date).days, 1)
+    avg_views_per_day = round(total_views / days_count, 1)
+    
+    # Тренд (сравнение с предыдущим периодом)
+    prev_start = start_date - (now - start_date)
+    prev_views_count = await db.view_history.count_documents({
+        "offer_id": offer_id,
+        "viewed_at": {"$gte": prev_start, "$lt": start_date}
+    })
+    
+    if prev_views_count > 0:
+        trend_percent = round(((total_views - prev_views_count) / prev_views_count) * 100, 1)
+    else:
+        trend_percent = 100 if total_views > 0 else 0
+    
+    # Информация о бустах
+    active_boost = await db.boosts.find_one({
+        "offer_id": offer_id,
+        "status": "active",
+        "expires_at": {"$gt": now}
+    })
+    
+    boost_info = None
+    if active_boost:
+        boost_info = {
+            "type": active_boost.get("boost_type"),
+            "expires_at": active_boost.get("expires_at"),
+            "notifications_sent": active_boost.get("notifications_sent", 0),
+            "days_left": (active_boost.get("expires_at") - now).days
+        }
+    
+    # Конверсия в избранное
+    favorites_count = await db.users.count_documents({
+        "favorites": offer_id
+    })
+    
+    conversion_rate = round((favorites_count / unique_visitors * 100), 1) if unique_visitors > 0 else 0
+    
+    return {
+        "offer_id": offer_id,
+        "offer_title": offer.get("title"),
+        "period": period,
+        "summary": {
+            "total_views": total_views,
+            "unique_visitors": unique_visitors,
+            "avg_views_per_day": avg_views_per_day,
+            "trend_percent": trend_percent,
+            "trend_direction": "up" if trend_percent > 0 else "down" if trend_percent < 0 else "stable",
+            "favorites_count": favorites_count,
+            "conversion_rate": conversion_rate,
+            "peak_hour": f"{peak_hour}:00"
+        },
+        "charts": {
+            "views_by_day": [{"date": k, "views": v} for k, v in sorted(views_by_day.items())],
+            "views_by_hour": [{"hour": f"{k}:00", "views": v} for k, v in sorted(views_by_hour.items(), key=lambda x: int(x[0]))]
+        },
+        "boost": boost_info,
+        "recommendations": _generate_recommendations(total_views, unique_visitors, trend_percent, active_boost)
+    }
+
+def _generate_recommendations(views, visitors, trend, has_boost):
+    """Генерирует умные рекомендации для владельца"""
+    recs = []
+    
+    if views < 10:
+        recs.append({
+            "type": "boost",
+            "priority": "high",
+            "title": "Мало просмотров",
+            "text": "Активируйте буст, чтобы привлечь больше клиентов рядом",
+            "action": "buy_boost"
+        })
+    elif views < 50 and not has_boost:
+        recs.append({
+            "type": "boost",
+            "priority": "medium",
+            "title": "Увеличьте охват",
+            "text": "Буст увеличит просмотры в 3-5 раз за счёт push-уведомлений",
+            "action": "buy_boost"
+        })
+    
+    if trend < -20:
+        recs.append({
+            "type": "content",
+            "priority": "high",
+            "title": "Снижение интереса",
+            "text": "Обновите фото или описание, добавьте акцию",
+            "action": "edit_offer"
+        })
+    
+    if visitors > 0 and (views / visitors) < 1.2:
+        recs.append({
+            "type": "engagement",
+            "priority": "medium",
+            "title": "Низкая вовлечённость",
+            "text": "Посетители не возвращаются. Добавьте программу лояльности",
+            "action": "add_promo"
+        })
+    
+    if not recs:
+        recs.append({
+            "type": "success",
+            "priority": "low",
+            "title": "Всё отлично!",
+            "text": "Ваше объявление работает хорошо. Продолжайте в том же духе!",
+            "action": None
+        })
+    
+    return recs
+
+@app.get("/api/analytics/dashboard/{telegram_id}")
+async def get_analytics_dashboard(
+    telegram_id: int,
+    period: str = Query("30d")
+):
+    """Общая аналитика для всех объявлений владельца"""
+    # Проверяем пользователя
+    user = await db.users.find_one({"telegram_id": telegram_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.get("role") != "business_owner":
+        raise HTTPException(status_code=403, detail="Only for business owners")
+    
+    from datetime import timedelta, timezone
+    now = datetime.now(timezone.utc)
+    
+    if period == "7d":
+        start_date = now - timedelta(days=7)
+    elif period == "30d":
+        start_date = now - timedelta(days=30)
+    elif period == "90d":
+        start_date = now - timedelta(days=90)
+    else:
+        start_date = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    
+    # Получаем все объявления пользователя
+    offers = []
+    async for offer in db.offers.find({"user_id": telegram_id}):
+        offer["_id"] = str(offer["_id"])
+        offers.append(offer)
+    
+    offer_ids = [o["id"] for o in offers]
+    
+    # Общие просмотры за период
+    total_views = await db.view_history.count_documents({
+        "offer_id": {"$in": offer_ids},
+        "viewed_at": {"$gte": start_date}
+    })
+    
+    # Просмотры за предыдущий период
+    prev_start = start_date - (now - start_date)
+    prev_views = await db.view_history.count_documents({
+        "offer_id": {"$in": offer_ids},
+        "viewed_at": {"$gte": prev_start, "$lt": start_date}
+    })
+    
+    trend_percent = round(((total_views - prev_views) / prev_views * 100), 1) if prev_views > 0 else (100 if total_views > 0 else 0)
+    
+    # Уникальные посетители
+    pipeline = [
+        {"$match": {"offer_id": {"$in": offer_ids}, "viewed_at": {"$gte": start_date}}},
+        {"$group": {"_id": "$user_id"}}
+    ]
+    unique_visitors = len([doc async for doc in db.view_history.aggregate(pipeline)])
+    
+    # Аналитика по каждому объявлению
+    offers_analytics = []
+    for offer in offers:
+        offer_views = await db.view_history.count_documents({
+            "offer_id": offer["id"],
+            "viewed_at": {"$gte": start_date}
+        })
+        
+        # Проверяем активный буст
+        active_boost = await db.boosts.find_one({
+            "offer_id": offer["id"],
+            "status": "active",
+            "expires_at": {"$gt": now}
+        })
+        
+        offers_analytics.append({
+            "id": offer["id"],
+            "title": offer.get("title"),
+            "category": offer.get("category"),
+            "views": offer_views,
+            "total_views": offer.get("views", 0),
+            "has_boost": active_boost is not None,
+            "boost_expires": active_boost.get("expires_at") if active_boost else None,
+            "status": offer.get("status")
+        })
+    
+    # Сортируем по просмотрам
+    offers_analytics.sort(key=lambda x: x["views"], reverse=True)
+    
+    # Топ-3 и аутсайдеры
+    top_offers = offers_analytics[:3]
+    low_offers = [o for o in offers_analytics if o["views"] < 5][:3]
+    
+    # Просмотры по дням для графика
+    views_pipeline = [
+        {"$match": {"offer_id": {"$in": offer_ids}, "viewed_at": {"$gte": start_date}}},
+        {"$group": {
+            "_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$viewed_at"}},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    
+    views_by_day = []
+    async for doc in db.view_history.aggregate(views_pipeline):
+        views_by_day.append({"date": doc["_id"], "views": doc["count"]})
+    
+    # Активные бусты
+    active_boosts_count = await db.boosts.count_documents({
+        "user_id": telegram_id,
+        "status": "active",
+        "expires_at": {"$gt": now}
+    })
+    
+    # Общее количество в избранном
+    total_favorites = await db.users.count_documents({
+        "favorites": {"$in": offer_ids}
+    })
+    
+    return {
+        "period": period,
+        "summary": {
+            "total_offers": len(offers),
+            "active_offers": len([o for o in offers if o.get("status") == "active"]),
+            "total_views": total_views,
+            "unique_visitors": unique_visitors,
+            "trend_percent": trend_percent,
+            "trend_direction": "up" if trend_percent > 0 else "down" if trend_percent < 0 else "stable",
+            "total_favorites": total_favorites,
+            "active_boosts": active_boosts_count
+        },
+        "chart_data": views_by_day,
+        "offers": offers_analytics,
+        "top_performers": top_offers,
+        "need_attention": low_offers,
+        "recommendations": _generate_dashboard_recommendations(offers_analytics, active_boosts_count, trend_percent)
+    }
+
+def _generate_dashboard_recommendations(offers, boosts_count, trend):
+    """Рекомендации для дашборда"""
+    recs = []
+    
+    low_views_offers = [o for o in offers if o["views"] < 5 and o["status"] == "active"]
+    if low_views_offers and boosts_count == 0:
+        recs.append({
+            "type": "boost",
+            "priority": "high",
+            "title": f"{len(low_views_offers)} объявлений с низкими просмотрами",
+            "text": "Активируйте бусты для увеличения охвата",
+            "action": "buy_boost",
+            "offer_ids": [o["id"] for o in low_views_offers[:3]]
+        })
+    
+    if trend < -30:
+        recs.append({
+            "type": "alert",
+            "priority": "high",
+            "title": "Значительное снижение просмотров",
+            "text": "Обновите контент или добавьте акции для привлечения клиентов",
+            "action": "review_offers"
+        })
+    
+    unboosted = [o for o in offers if not o["has_boost"] and o["status"] == "active"]
+    if len(unboosted) > 0 and boosts_count == 0:
+        recs.append({
+            "type": "opportunity",
+            "priority": "medium",
+            "title": "Все объявления без буста",
+            "text": "Буст увеличивает просмотры в 3-5 раз",
+            "action": "buy_boost"
+        })
+    
+    if not recs:
+        recs.append({
+            "type": "success",
+            "priority": "low",
+            "title": "Отличная работа!",
+            "text": "Ваши объявления показывают хорошие результаты",
+            "action": None
+        })
+    
+    return recs
+
+@app.get("/api/analytics/compare/{telegram_id}")
+async def compare_offers_analytics(
+    telegram_id: int,
+    offer_ids: str = Query(..., description="Comma-separated offer IDs")
+):
+    """Сравнение аналитики нескольких объявлений"""
+    ids = [id.strip() for id in offer_ids.split(",")]
+    
+    from datetime import timedelta, timezone
+    now = datetime.now(timezone.utc)
+    start_date = now - timedelta(days=30)
+    
+    comparison = []
+    for offer_id in ids:
+        offer = await db.offers.find_one({"id": offer_id})
+        if offer and offer.get("user_id") == telegram_id:
+            views = await db.view_history.count_documents({
+                "offer_id": offer_id,
+                "viewed_at": {"$gte": start_date}
+            })
+            
+            favorites = await db.users.count_documents({"favorites": offer_id})
+            
+            comparison.append({
+                "id": offer_id,
+                "title": offer.get("title"),
+                "category": offer.get("category"),
+                "views_30d": views,
+                "total_views": offer.get("views", 0),
+                "favorites": favorites,
+                "created_at": offer.get("created_at")
+            })
+    
+    return {"comparison": comparison}
+
+
 # ---------- PAYMENT DETAILS FOR IP/BUSINESS ----------
 
 @app.get("/api/users/{telegram_id}/payment-details")
