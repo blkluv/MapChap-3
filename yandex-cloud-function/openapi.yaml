@@ -2,7 +2,6 @@ openapi: 3.0.0
 info:
   title: MapChap API
   version: "3.0.0"
-  description: API для Telegram Mini App MapChap
 
 x-yc-apigateway:
   cors:
@@ -18,7 +17,16 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Health check
+          description: OK
+
+  /api/debug:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
 
   /api/categories:
     get:
@@ -27,7 +35,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Categories list
+          description: OK
 
   /api/app-info:
     get:
@@ -36,7 +44,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: App info
+          description: OK
 
   /api/auth/telegram:
     post:
@@ -45,7 +53,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Telegram auth
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -54,7 +62,7 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
   /api/users/{telegram_id}:
@@ -63,21 +71,25 @@ paths:
         in: path
         required: true
         schema:
-          type: integer
+          type: string
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          telegram_id: '{telegram_id}'
       responses:
         '200':
-          description: User data
+          description: OK
     put:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          telegram_id: '{telegram_id}'
       responses:
         '200':
-          description: Updated user
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -86,7 +98,7 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'GET, PUT, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
   /api/users/{telegram_id}/favorites:
@@ -95,21 +107,25 @@ paths:
         in: path
         required: true
         schema:
-          type: integer
+          type: string
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          telegram_id: '{telegram_id}'
       responses:
         '200':
-          description: User favorites
+          description: OK
     put:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          telegram_id: '{telegram_id}'
       responses:
         '200':
-          description: Updated favorites
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -118,7 +134,7 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'GET, PUT, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
   /api/offers:
@@ -128,14 +144,14 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Offers list
+          description: OK
     post:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Created offer
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -144,7 +160,7 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
   /api/offers/{offer_id}:
@@ -158,9 +174,11 @@ paths:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          offer_id: '{offer_id}'
       responses:
         '200':
-          description: Offer details
+          description: OK
 
   /api/offers/user/{telegram_id}:
     parameters:
@@ -168,14 +186,16 @@ paths:
         in: path
         required: true
         schema:
-          type: integer
+          type: string
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
+        context:
+          telegram_id: '{telegram_id}'
       responses:
         '200':
-          description: User offers
+          description: OK
 
   /api/articles:
     get:
@@ -184,7 +204,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Articles list
+          description: OK
 
   /api/boosts/plans:
     get:
@@ -193,7 +213,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Boost plans
+          description: OK
 
   /api/verification/inn:
     post:
@@ -202,7 +222,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: INN verification
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -211,7 +231,7 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
   /api/verification/manual:
@@ -221,7 +241,7 @@ paths:
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
-          description: Manual verification
+          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -230,5 +250,5 @@ paths:
         http_code: 200
         http_headers:
           Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
