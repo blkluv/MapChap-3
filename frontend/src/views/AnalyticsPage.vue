@@ -303,7 +303,8 @@ const categories = {
 const loadData = async () => {
   loading.value = true
   try {
-    const response = await api.get(`/api/analytics/dashboard/${userStore.telegramId}?period=${period.value}`)
+    const telegramId = authStore.user?.telegram_id || authStore.telegramId
+    const response = await apiService.get(`/api/analytics/dashboard/${telegramId}?period=${period.value}`)
     dashboard.value = response.data
   } catch (error) {
     console.error('Error loading analytics:', error)
@@ -314,7 +315,8 @@ const loadData = async () => {
 
 const viewOfferAnalytics = async (offerId) => {
   try {
-    const response = await api.get(`/api/analytics/offer/${offerId}?telegram_id=${userStore.telegramId}&period=${period.value}`)
+    const telegramId = authStore.user?.telegram_id || authStore.telegramId
+    const response = await apiService.get(`/api/analytics/offer/${offerId}?telegram_id=${telegramId}&period=${period.value}`)
     selectedOffer.value = response.data
   } catch (error) {
     console.error('Error loading offer analytics:', error)
