@@ -786,40 +786,168 @@ def handle_analytics_offer(event, context, offer_id):
 def handle_telegram_webhook(event, context):
     try:
         body = json.loads(event.get('body', '{}'))
+        db = get_db()
         
         # Handle Telegram updates
         message = body.get('message', {})
         callback_query = body.get('callback_query', {})
         
-        if message:
+        if callback_query:
+            # Обработка нажатий на inline кнопки
+            callback_id = callback_query.get('id')
+            data = callback_query.get('data', '')
+            chat_id = callback_query.get('from', {}).get('id')
+            
+            # Ответ на callback чтобы убрать "часики"
+            answer_callback(callback_id)
+            
+            if data.startswith('boost_'):
+                offer_id = data.replace('boost_', '')
+                offer = db.offers.find_one({"id": offer_id})
+                if offer:
+                    text = f"""
+⚡ <b>Буст для «{offer.get('title')}»</b>
+
+Выберите тариф:
+• 1 день — 350 Stars
+• 5 дней — 1200 Stars (популярный)
+• 7 дней — 1600 Stars
+
+Откройте приложение для оплаты:
+"""
+                    reply_markup = {
+                        "inline_keyboard": [[
+                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://mapchap-frontend.website.yandexcloud.net"}}
+                        ]]
+                    }
+                    send_telegram_message(chat_id, text, reply_markup=reply_markup)
+            
+            elif data.startswith('extend_boost_'):
+                offer_id = data.replace('extend_boost_', '')
+                offer = db.offers.find_one({"id": offer_id})
+                if offer:
+                    send_telegram_message(chat_id, f"Откройте приложение для продления буста «{offer.get('title')}»", reply_markup={
+                        "inline_keyboard": [[
+                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://mapchap-frontend.website.yandexcloud.net"}}
+                        ]]
+                    })
+        
+        elif message:
             chat_id = message.get('chat', {}).get('id')
             text = message.get('text', '')
+            user_info = message.get('from', {})
             
             if text == '/start':
-                send_telegram_message(chat_id, "Добро пожаловать в MapChap! 🗺️\n\nОткройте приложение через кнопку ниже:", {
-                    "inline_keyboard": [[{
-                        "text": "🚀 Открыть MapChap",
-                        "web_app": {"url": "https://mapchap.ru"}
-                    }]]
-                })
+                # Регистрируем/обновляем пользователя
+                user = db.users.find_one({"telegram_id": chat_id})
+                if not user:
+                    db.users.insert_one({
+                        "id": str(uuid.uuid4()),
+                        "telegram_id": chat_id,
+                        "first_name": user_info.get('first_name', ''),
+                        "last_name": user_info.get('last_name', ''),
+                        "username": user_info.get('username', ''),
+                        "role": "user",
+                        "is_verified": False,
+                        "notifications_enabled": True,
+                        "favorites": [],
+                        "created_at": datetime.now(timezone.utc)
+                    })
+                
+                welcome_text = f"""
+👋 <b>Добро пожаловать в MapChap!</b>
+
+🗺️ Находите лучшие места рядом с вами
+🏪 Добавляйте свой бизнес
+📊 Получайте аналитику и клиентов
+
+Откройте приложение по кнопке ниже:
+"""
+                reply_markup = {
+                    "inline_keyboard": [[
+                        {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://mapchap-frontend.website.yandexcloud.net"}}
+                    ]]
+                }
+                send_telegram_message(chat_id, welcome_text, reply_markup=reply_markup)
+                
             elif text == '/help':
-                send_telegram_message(chat_id, "MapChap - платформа для поиска бизнесов рядом с вами!\n\n/start - Открыть приложение\n/help - Помощь")
+                help_text = """
+📖 <b>Помощь MapChap</b>
+
+<b>Команды:</b>
+/start — Открыть приложение
+/notifications — Настройки уведомлений
+/stats — Статистика (для бизнеса)
+/help — Эта справка
+
+<b>Поддержка:</b>
+📧 khabibullaevakhrorjon@gmail.com
+📱 +7 (999) 821-47-58
+"""
+                send_telegram_message(chat_id, help_text)
+                
+            elif text == '/notifications':
+                user = db.users.find_one({"telegram_id": chat_id})
+                if user:
+                    current = user.get('notifications_enabled', True)
+                    status = "✅ включены" if current else "❌ отключены"
+                    reply_markup = {
+                        "inline_keyboard": [[
+                            {"text": "❌ Отключить" if current else "✅ Включить", "callback_data": "toggle_notifications"}
+                        ]]
+                    }
+                    send_telegram_message(chat_id, f"🔔 <b>Уведомления:</b> {status}", reply_markup=reply_markup)
+                else:
+                    send_telegram_message(chat_id, "Сначала откройте приложение через /start")
+                    
+            elif text == '/stats':
+                user = db.users.find_one({"telegram_id": chat_id})
+                if user and user.get('role') == 'business_owner':
+                    offers = list(db.offers.find({"user_id": chat_id}))
+                    total_views = sum(o.get('views', 0) for o in offers)
+                    total_likes = sum(o.get('likes', 0) for o in offers)
+                    
+                    stats_text = f"""
+📊 <b>Ваша статистика</b>
+
+🏪 Объявлений: {len(offers)}
+👁 Просмотров: {total_views}
+❤️ В избранном: {total_likes}
+
+Подробная аналитика в приложении:
+"""
+                    reply_markup = {
+                        "inline_keyboard": [[
+                            {"text": "📊 Аналитика", "web_app": {"url": "https://mapchap-frontend.website.yandexcloud.net/analytics"}}
+                        ]]
+                    }
+                    send_telegram_message(chat_id, stats_text, reply_markup=reply_markup)
+                else:
+                    send_telegram_message(chat_id, "Статистика доступна только для бизнес-аккаунтов. Зарегистрируйте бизнес в приложении!")
+        
+        # Handle callback for toggle notifications
+        if callback_query and callback_query.get('data') == 'toggle_notifications':
+            chat_id = callback_query.get('from', {}).get('id')
+            user = db.users.find_one({"telegram_id": chat_id})
+            if user:
+                new_state = not user.get('notifications_enabled', True)
+                db.users.update_one({"telegram_id": chat_id}, {"$set": {"notifications_enabled": new_state}})
+                status = "✅ включены" if new_state else "❌ отключены"
+                send_telegram_message(chat_id, f"🔔 Уведомления {status}")
         
         return json_response({"ok": True})
     except Exception as e:
-        return json_response({"error": str(e)}, 500)
+        print(f"Webhook error: {e}")
+        return json_response({"ok": True})  # Всегда возвращаем ok чтобы Telegram не ретраил
 
-def send_telegram_message(chat_id, text, reply_markup=None):
+def answer_callback(callback_id, text=None):
+    """Ответ на callback query"""
     try:
-        data = {"chat_id": chat_id, "text": text, "parse_mode": "HTML"}
-        if reply_markup:
-            data["reply_markup"] = reply_markup
-        
-        with httpx.Client(timeout=10) as client:
-            client.post(
-                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
-                json=data
-            )
+        data = {"callback_query_id": callback_id}
+        if text:
+            data["text"] = text
+        with httpx.Client(timeout=5) as client:
+            client.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/answerCallbackQuery", json=data)
     except:
         pass
 
