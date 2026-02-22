@@ -5,7 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 import ssl
-import certifi
+import tempfile
 
 from pymongo import MongoClient
 import httpx
@@ -17,20 +17,58 @@ DADATA_API_KEY = os.environ.get("DADATA_API_KEY", "")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "khabibullaevakhrorjon@gmail.com")
 SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "+79998214758")
 
+# Yandex Cloud CA Certificate (embedded)
+YANDEX_CA_CERT = """-----BEGIN CERTIFICATE-----
+MIIFGTCCAwGgAwIBAgIQJMM7ZIy2SYxCBgK7WcFwnjANBgkqhkiG9w0BAQ0FADAf
+MR0wGwYDVQQDExRZYW5kZXhJbnRlcm5hbFJvb3RDQTAeFw0xMzAyMTExMzQxNDNa
+Fw0zMzAyMTExMzUxNDJaMB8xHTAbBgNVBAMTFFlhbmRleEludGVybmFsUm9vdENB
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAgb4xoQjBQ7oEFk8EHVGy
+1pDEmPWw0Wgw5nX9RM7LL2xQWyUuEq+Lf9Dgh+O725aZ9+SO2oEs47DHHt81/fne
+5N6xOftRrCpy8hGtUR/A3bvjnQgjs+LXqedJnsvCmtY3cqHn3S0jqC7Jm0F5XnNR
+dLBQ+TvT9FGGDZ6Ls3HgTuQyBu+cKe+Vbh65MVPN2YTNT7cvr+Yk59aEhTMeLWaE
+M3PL+gVpefmvr/+b9dPMK8qzYNC0qJPxpbYHG+OPkSO3RY8Un9LZTMYR0l+zaZ9J
+P6K1Vv7WJ/kTvIpSqEh7CZJJ3E3q5sZN7L2Ahy7v53xdhc8uKGDR4dPyT/G5m1U1
+s3L2DYH4ydyW+lTXs2dU1N3rrGMIooxr0n3H3znjqGP8xvBAEr2K+zOMxPJn3r1J
+rYn5tqB7R2Q2X1VjwTX4Wf+w1Gu89dXpJHf2w87d+BFh1Y7Pt3mveloLOVr1qLHH
+Zn0EGjpK8cnQVAjjKN4HrP5x9D7c5LvlJVVE8uXLI2SQFj7cdNYz3L7rkC+ym7ab
+Z3B+3f1M7o2gg0F0lE2xzUhH2xVq3G9Pz3SG38j3n8l5p5+kFw0+c0ltejdC9YK7
++kUFyhw/T9GQkZdMH7aV+evvPblvpbCijqhdjrafHJ3cLxsLqnR1JL0WJG9jsHxu
+7TEQaFPQtR3V6g0UU5lJQckCAwEAAaNRME8wCwYDVR0PBAQDAgGGMA8GA1UdEwEB
+/wQFMAMBAf8wHQYDVR0OBBYEFKu5xf+h7+ZTHTM5IoGEQ27jLgNuMBAGCSsGAQQB
+gjcVAQQDAgEAMA0GCSqGSIb3DQEBDQUAA4ICAQAj8LnRX3pb5r3gfZgXeC1GZGvc
+pB0d+gzBJghJL5oJN5Z4RdteNFoQsu85lEfCfWrQsOK46ygIMv/p7njlS0MKWr6w
+GEFBOxVsQ1LxA3pC2JWfAQf+l1s6r3okOOzZZ0rAiYyXUPW/gzpJ6g1Xp9OE0LB7
+NIMeJQI1oD4p4X8p6CVQJK25O5V67RGl/8TWTIJLqFl8M7FhM8q/FY8hIq6wRpLF
+vPzYIzwfiC0lxGPDBs/g0RVbSUMH/bVL3xsV4IJTHJ/gK7x3yqOFR6vF9W7KZBXa
+M2svLmd8M8r7Pky5X0t1j3eVs0FN0QXN3JBDdGvJkoyEBdM+sE/Z+8BpJqLKE8+V
+u7rp2sN7UYM6pTQ4xy4T6cY0GFJwL+0ue+w0mYoEI0RL5+i8BhVQ0N6viLYEjt1G
+aA/2e5VKFrWOPvPJl6FqB2DPH/YH/bmbDQd/JVAJ8oFzqzK03Hy7PDP8r6o1vkcd
+VlaVb8kNFzYHfXg7qSf+w5i2m+G0K0uqjJNFhOJuaA+ISwSMN4RGJPV2WneHJOJM
+Sq05efbHH8jY5G0X5gVjZbVvlrUSL7jSMCIJgL1+wVJqIxz0e3KBVoQ3TARC3WET
+nZpSMALsA+EWZKwiU5bXdKs0SYqL+0bMB0RzTwUC8i7/JjTnI2T0JzG05FkLJKUh
+FxPD5e8aeqOj2nFj9g==
+-----END CERTIFICATE-----"""
+
 # MongoDB connection (lazy init)
 _client = None
 _db = None
+_ca_file = None
 
 def get_db():
-    global _client, _db
+    global _client, _db, _ca_file
     if _db is None:
-        # Используем системные сертификаты для TLS
+        # Создаём временный файл с CA сертификатом
+        if _ca_file is None:
+            _ca_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
+            _ca_file.write(YANDEX_CA_CERT)
+            _ca_file.flush()
+        
         _client = MongoClient(
             MONGO_URL,
             tls=True,
-            tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=5000
+            tlsCAFile=_ca_file.name,
+            serverSelectionTimeoutMS=10000,
+            connectTimeoutMS=10000
         )
         _db = _client.mapchap
     return _db
@@ -388,8 +426,6 @@ def handle_verification_manual(event, context):
 
 # ===================== MAIN HANDLER =====================
 def handler(event, context):
-    """Main entry point for Yandex Cloud Function"""
-    
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return json_response({})
