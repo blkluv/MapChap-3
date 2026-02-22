@@ -85,98 +85,10 @@
           </div>
         </div>
 
-        <!-- Табы верификации -->
-        <div class="verification-tabs">
-          <button 
-            class="tab-btn"
-            :class="{ active: verificationMethod === 'inn' }"
-            @click="verificationMethod = 'inn'"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            {{ t('business_verify_inn') }}
-          </button>
-          <button 
-            class="tab-btn"
-            :class="{ active: verificationMethod === 'manual' }"
-            @click="verificationMethod = 'manual'"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            {{ t('business_verify_manual') }}
-          </button>
-        </div>
-
-        <!-- Форма ИНН -->
-        <div v-if="verificationMethod === 'inn'" class="section-card">
-          <div class="section-title">{{ t('business_inn_check') }}</div>
-          <p class="section-description">{{ t('business_inn_desc') }}</p>
-          
-          <!-- Выбор страны -->
-          <div class="form-group">
-            <label>{{ t('business_country_label') }}</label>
-            <div class="country-btns">
-              <button 
-                class="country-btn"
-                :class="{ active: innForm.country === 'RU' }"
-                @click="innForm.country = 'RU'"
-              >RU · {{ t('business_country_russia') }}</button>
-              <button 
-                class="country-btn"
-                :class="{ active: innForm.country === 'KZ' }"
-                @click="innForm.country = 'KZ'"
-              >KZ · {{ t('business_country_kazakhstan') }}</button>
-              <button 
-                class="country-btn"
-                :class="{ active: innForm.country === 'BY' }"
-                @click="innForm.country = 'BY'"
-              >BY · {{ t('business_country_belarus') }}</button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>{{ innForm.country === 'KZ' ? t('business_bin_company') : t('business_inn_label') }}</label>
-            <input 
-              v-model="innForm.inn"
-              type="text" 
-              :placeholder="getINNPlaceholder"
-              :maxlength="innForm.country === 'KZ' ? 12 : 12"
-              @input="validateINN"
-            >
-            <span v-if="innError" class="field-error">{{ innError }}</span>
-          </div>
-
-          <div v-if="innVerificationResult" class="result-card" :class="{ success: innVerificationResult.success }">
-            <div v-if="innVerificationResult.success" class="result-success">
-              <span class="result-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              </span>
-              <div>
-                <strong>{{ innVerificationResult.verification.name }}</strong>
-                <p>{{ innForm.country === 'KZ' ? 'БИН' : 'ИНН' }}: {{ innVerificationResult.verification.inn }}</p>
-                <p v-if="innVerificationResult.verification.address">{{ innVerificationResult.verification.address }}</p>
-                <p v-if="innVerificationResult.verification.status">{{ t('business_status') }}: {{ innVerificationResult.verification.status }}</p>
-              </div>
-            </div>
-            <div v-else class="result-error">
-              <span class="result-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              </span>
-              <p>{{ innVerificationResult.error }}</p>
-            </div>
-          </div>
-
-          <button class="btn btn-primary btn-block" @click="verifyByINN" :disabled="isVerifying || !isValidINN">
-            {{ isVerifying ? t('loading') : t('business_check') }}
-          </button>
-          
-          <!-- Подсказка для других стран СНГ -->
-          <div class="cis-hint">
-            <p>{{ t('business_cis_hint') }}</p>
-          </div>
-        </div>
-
-        <!-- Ручная форма -->
-        <div v-if="verificationMethod === 'manual'" class="section-card">
+        <!-- Ручная верификация бизнеса -->
+        <div class="section-card">
           <div class="section-title">{{ t('business_manual_verification') }}</div>
+          <p class="section-description">Заполните данные о вашем бизнесе для активации аккаунта</p>
           
           <div class="form-group">
             <label>{{ t('business_company_name') }} *</label>
