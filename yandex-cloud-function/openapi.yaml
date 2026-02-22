@@ -15,7 +15,7 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Health check
@@ -24,7 +24,7 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Categories list
@@ -33,7 +33,7 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: App info
@@ -42,7 +42,7 @@ paths:
     post:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Telegram auth
@@ -67,7 +67,7 @@ paths:
             type: integer
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: User data
@@ -80,7 +80,7 @@ paths:
             type: integer
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Updated user
@@ -105,7 +105,7 @@ paths:
             type: integer
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: User favorites
@@ -118,7 +118,7 @@ paths:
             type: integer
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Updated favorites
@@ -137,14 +137,14 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Offers list
     post:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Created offer
@@ -169,7 +169,7 @@ paths:
             type: string
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Offer details
@@ -184,7 +184,7 @@ paths:
             type: integer
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: User offers
@@ -193,7 +193,7 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Articles list
@@ -202,7 +202,7 @@ paths:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Boost plans
@@ -211,7 +211,7 @@ paths:
     post:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: INN verification
@@ -230,7 +230,7 @@ paths:
     post:
       x-yc-apigateway-integration:
         type: cloud_functions
-        function_id: ${FUNCTION_ID}
+        function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: Manual verification
