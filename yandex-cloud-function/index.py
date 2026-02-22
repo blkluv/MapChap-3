@@ -4,8 +4,9 @@ import math
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
+import ssl
+import certifi
 
-# Для Cloud Functions используем синхронный pymongo
 from pymongo import MongoClient
 import httpx
 
@@ -23,7 +24,14 @@ _db = None
 def get_db():
     global _client, _db
     if _db is None:
-        _client = MongoClient(MONGO_URL)
+        # Используем системные сертификаты для TLS
+        _client = MongoClient(
+            MONGO_URL,
+            tls=True,
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000
+        )
         _db = _client.mapchap
     return _db
 
@@ -39,14 +47,6 @@ def json_response(data, status_code=200):
         },
         'body': json.dumps(data, default=str)
     }
-
-def calculate_distance(lat1, lon1, lat2, lon2):
-    R = 6371
-    dLat = math.radians(lat2 - lat1)
-    dLon = math.radians(lon2 - lon1)
-    a = math.sin(dLat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    return R * c
 
 def serialize_doc(doc):
     if doc is None:
@@ -94,188 +94,215 @@ def handle_app_info(event, context):
     })
 
 def handle_telegram_auth(event, context):
-    db = get_db()
-    body = json.loads(event.get('body', '{}'))
-    telegram_id = body.get('id')
-    
-    if not telegram_id:
-        return json_response({"error": "telegram_id required"}, 400)
-    
-    existing = db.users.find_one({"telegram_id": telegram_id})
-    
-    if existing:
-        db.users.update_one(
-            {"telegram_id": telegram_id},
-            {"$set": {
+    try:
+        db = get_db()
+        body = json.loads(event.get('body', '{}'))
+        telegram_id = body.get('id')
+        
+        if not telegram_id:
+            return json_response({"error": "telegram_id required"}, 400)
+        
+        existing = db.users.find_one({"telegram_id": telegram_id})
+        
+        if existing:
+            db.users.update_one(
+                {"telegram_id": telegram_id},
+                {"$set": {
+                    "first_name": body.get('first_name', ''),
+                    "last_name": body.get('last_name', ''),
+                    "username": body.get('username', ''),
+                    "photo_url": body.get('photo_url', ''),
+                    "last_login": datetime.now(timezone.utc)
+                }}
+            )
+            user = db.users.find_one({"telegram_id": telegram_id})
+        else:
+            user_doc = {
+                "id": str(uuid.uuid4()),
+                "telegram_id": telegram_id,
                 "first_name": body.get('first_name', ''),
                 "last_name": body.get('last_name', ''),
                 "username": body.get('username', ''),
                 "photo_url": body.get('photo_url', ''),
-                "last_login": datetime.now(timezone.utc)
-            }}
-        )
-        user = db.users.find_one({"telegram_id": telegram_id})
-    else:
-        user_doc = {
-            "id": str(uuid.uuid4()),
-            "telegram_id": telegram_id,
-            "first_name": body.get('first_name', ''),
-            "last_name": body.get('last_name', ''),
-            "username": body.get('username', ''),
-            "photo_url": body.get('photo_url', ''),
-            "role": "user",
-            "is_verified": False,
-            "favorites": [],
-            "favorite_categories": [],
-            "created_at": datetime.now(timezone.utc)
-        }
-        db.users.insert_one(user_doc)
-        user = user_doc
-    
-    return json_response({"success": True, "user": serialize_doc(user)})
+                "role": "user",
+                "is_verified": False,
+                "favorites": [],
+                "favorite_categories": [],
+                "created_at": datetime.now(timezone.utc)
+            }
+            db.users.insert_one(user_doc)
+            user = user_doc
+        
+        return json_response({"success": True, "user": serialize_doc(user)})
+    except Exception as e:
+        return json_response({"error": str(e), "type": "auth_error"}, 500)
 
 def handle_get_user(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    
-    user = db.users.find_one({"telegram_id": telegram_id})
-    if not user:
-        return json_response({"error": "User not found"}, 404)
-    
-    return json_response(serialize_doc(user))
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        
+        user = db.users.find_one({"telegram_id": telegram_id})
+        if not user:
+            return json_response({"error": "User not found"}, 404)
+        
+        return json_response(serialize_doc(user))
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 def handle_update_user(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    body = json.loads(event.get('body', '{}'))
-    
-    result = db.users.update_one({"telegram_id": telegram_id}, {"$set": body})
-    if result.modified_count == 0:
-        return json_response({"error": "User not found"}, 404)
-    
-    user = db.users.find_one({"telegram_id": telegram_id})
-    return json_response(serialize_doc(user))
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        body = json.loads(event.get('body', '{}'))
+        
+        result = db.users.update_one({"telegram_id": telegram_id}, {"$set": body})
+        if result.modified_count == 0:
+            return json_response({"error": "User not found"}, 404)
+        
+        user = db.users.find_one({"telegram_id": telegram_id})
+        return json_response(serialize_doc(user))
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 def handle_get_offers(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('query', {})
-    
-    query = {"status": "active"}
-    category = params.get('category')
-    if category and category != 'all':
-        query['category'] = category
-    
-    search = params.get('search')
-    if search:
-        query['$or'] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"description": {"$regex": search, "$options": "i"}}
-        ]
-    
-    limit = int(params.get('limit', 50))
-    skip = int(params.get('skip', 0))
-    
-    offers = list(db.offers.find(query).skip(skip).limit(limit))
-    total = db.offers.count_documents(query)
-    
-    return json_response({
-        "offers": [serialize_doc(o) for o in offers],
-        "total": total
-    })
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('query', {})
+        
+        query = {"status": "active"}
+        category = params.get('category')
+        if category and category != 'all':
+            query['category'] = category
+        
+        search = params.get('search')
+        if search:
+            query['$or'] = [
+                {"title": {"$regex": search, "$options": "i"}},
+                {"description": {"$regex": search, "$options": "i"}}
+            ]
+        
+        limit = int(params.get('limit', 50))
+        skip = int(params.get('skip', 0))
+        
+        offers = list(db.offers.find(query).skip(skip).limit(limit))
+        total = db.offers.count_documents(query)
+        
+        return json_response({
+            "offers": [serialize_doc(o) for o in offers],
+            "total": total
+        })
+    except Exception as e:
+        return json_response({"error": str(e), "offers": [], "total": 0})
 
 def handle_get_offer(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    offer_id = params.get('offer_id')
-    
-    offer = db.offers.find_one({"id": offer_id})
-    if not offer:
-        return json_response({"error": "Offer not found"}, 404)
-    
-    return json_response(serialize_doc(offer))
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        offer_id = params.get('offer_id')
+        
+        offer = db.offers.find_one({"id": offer_id})
+        if not offer:
+            return json_response({"error": "Offer not found"}, 404)
+        
+        return json_response(serialize_doc(offer))
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 def handle_create_offer(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('query', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    body = json.loads(event.get('body', '{}'))
-    
-    user = db.users.find_one({"telegram_id": telegram_id})
-    if not user:
-        return json_response({"error": "User not found"}, 404)
-    if user.get('role') != 'business_owner':
-        return json_response({"error": "Only business owners can create offers"}, 403)
-    
-    coords = body.get('coordinates', [55.75, 37.62])
-    
-    offer_doc = {
-        "id": str(uuid.uuid4()),
-        "user_id": telegram_id,
-        "title": body.get('title'),
-        "description": body.get('description'),
-        "category": body.get('category'),
-        "address": body.get('address'),
-        "phone": body.get('phone'),
-        "coordinates": {"type": "Point", "coordinates": [coords[1], coords[0]]},
-        "images": body.get('images', []),
-        "tags": body.get('tags', []),
-        "status": "active",
-        "views": 0,
-        "likes": 0,
-        "created_at": datetime.now(timezone.utc)
-    }
-    
-    db.offers.insert_one(offer_doc)
-    return json_response(serialize_doc(offer_doc))
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('query', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        body = json.loads(event.get('body', '{}'))
+        
+        user = db.users.find_one({"telegram_id": telegram_id})
+        if not user:
+            return json_response({"error": "User not found"}, 404)
+        if user.get('role') != 'business_owner':
+            return json_response({"error": "Only business owners can create offers"}, 403)
+        
+        coords = body.get('coordinates', [55.75, 37.62])
+        
+        offer_doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": telegram_id,
+            "title": body.get('title'),
+            "description": body.get('description'),
+            "category": body.get('category'),
+            "address": body.get('address'),
+            "phone": body.get('phone'),
+            "coordinates": {"type": "Point", "coordinates": [coords[1], coords[0]]},
+            "images": body.get('images', []),
+            "tags": body.get('tags', []),
+            "status": "active",
+            "views": 0,
+            "likes": 0,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        db.offers.insert_one(offer_doc)
+        return json_response(serialize_doc(offer_doc))
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 def handle_user_offers(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    
-    offers = list(db.offers.find({"user_id": telegram_id}))
-    return json_response({"offers": [serialize_doc(o) for o in offers]})
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        
+        offers = list(db.offers.find({"user_id": telegram_id}))
+        return json_response({"offers": [serialize_doc(o) for o in offers]})
+    except Exception as e:
+        return json_response({"error": str(e), "offers": []})
 
 def handle_favorites(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    
-    user = db.users.find_one({"telegram_id": telegram_id})
-    if not user:
-        return json_response({"error": "User not found"}, 404)
-    
-    favorites = []
-    for offer_id in user.get('favorites', []):
-        offer = db.offers.find_one({"id": offer_id})
-        if offer:
-            favorites.append(serialize_doc(offer))
-    
-    return json_response({"favorites": favorites})
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        
+        user = db.users.find_one({"telegram_id": telegram_id})
+        if not user:
+            return json_response({"error": "User not found"}, 404)
+        
+        favorites = []
+        for offer_id in user.get('favorites', []):
+            offer = db.offers.find_one({"id": offer_id})
+            if offer:
+                favorites.append(serialize_doc(offer))
+        
+        return json_response({"favorites": favorites})
+    except Exception as e:
+        return json_response({"error": str(e), "favorites": []})
 
 def handle_update_favorites(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('path', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    body = json.loads(event.get('body', '{}'))
-    offer_id = body.get('offer_id')
-    
-    user = db.users.find_one({"telegram_id": telegram_id})
-    if not user:
-        return json_response({"error": "User not found"}, 404)
-    
-    favorites = user.get('favorites', [])
-    if offer_id in favorites:
-        favorites.remove(offer_id)
-        action = "removed"
-    else:
-        favorites.append(offer_id)
-        action = "added"
-    
-    db.users.update_one({"telegram_id": telegram_id}, {"$set": {"favorites": favorites}})
-    return json_response({"success": True, "action": action, "favorites": favorites})
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('path', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        body = json.loads(event.get('body', '{}'))
+        offer_id = body.get('offer_id')
+        
+        user = db.users.find_one({"telegram_id": telegram_id})
+        if not user:
+            return json_response({"error": "User not found"}, 404)
+        
+        favorites = user.get('favorites', [])
+        if offer_id in favorites:
+            favorites.remove(offer_id)
+            action = "removed"
+        else:
+            favorites.append(offer_id)
+            action = "added"
+        
+        db.users.update_one({"telegram_id": telegram_id}, {"$set": {"favorites": favorites}})
+        return json_response({"success": True, "action": action, "favorites": favorites})
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 def handle_boost_plans(event, context):
     plans = [
@@ -285,28 +312,30 @@ def handle_boost_plans(event, context):
     return json_response({"plans": plans})
 
 def handle_articles(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('query', {})
-    
-    query = {"status": "published"}
-    limit = int(params.get('limit', 20))
-    
-    articles = list(db.articles.find(query).sort("created_at", -1).limit(limit))
-    return json_response({"articles": [serialize_doc(a) for a in articles], "total": len(articles)})
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('query', {})
+        
+        query = {"status": "published"}
+        limit = int(params.get('limit', 20))
+        
+        articles = list(db.articles.find(query).sort("created_at", -1).limit(limit))
+        return json_response({"articles": [serialize_doc(a) for a in articles], "total": len(articles)})
+    except Exception as e:
+        return json_response({"error": str(e), "articles": [], "total": 0})
 
 def handle_verification_inn(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('query', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    body = json.loads(event.get('body', '{}'))
-    inn = body.get('inn')
-    
-    if not DADATA_API_KEY:
-        return json_response({"error": "DaData not configured"}, 500)
-    
-    # Verify INN via DaData
     try:
-        with httpx.Client() as client:
+        db = get_db()
+        params = event.get('params', {}).get('query', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        body = json.loads(event.get('body', '{}'))
+        inn = body.get('inn')
+        
+        if not DADATA_API_KEY:
+            return json_response({"error": "DaData not configured"}, 500)
+        
+        with httpx.Client(timeout=10) as client:
             response = client.post(
                 "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party",
                 json={"query": inn},
@@ -336,40 +365,40 @@ def handle_verification_inn(event, context):
         return json_response({"error": str(e)}, 500)
 
 def handle_verification_manual(event, context):
-    db = get_db()
-    params = event.get('params', {}).get('query', {})
-    telegram_id = int(params.get('telegram_id', 0))
-    body = json.loads(event.get('body', '{}'))
-    
-    db.users.update_one(
-        {"telegram_id": telegram_id},
-        {"$set": {
-            "role": "business_owner",
-            "is_verified": True,
-            "verification_type": "manual",
-            "phone": body.get('phone'),
-            "email": body.get('email'),
-            "company_name": body.get('company_name')
-        }}
-    )
-    return json_response({"success": True, "message": "Бизнес-аккаунт активирован"})
+    try:
+        db = get_db()
+        params = event.get('params', {}).get('query', {})
+        telegram_id = int(params.get('telegram_id', 0))
+        body = json.loads(event.get('body', '{}'))
+        
+        db.users.update_one(
+            {"telegram_id": telegram_id},
+            {"$set": {
+                "role": "business_owner",
+                "is_verified": True,
+                "verification_type": "manual",
+                "phone": body.get('phone'),
+                "email": body.get('email'),
+                "company_name": body.get('company_name')
+            }}
+        )
+        return json_response({"success": True, "message": "Бизнес-аккаунт активирован"})
+    except Exception as e:
+        return json_response({"error": str(e)}, 500)
 
 # ===================== MAIN HANDLER =====================
 def handler(event, context):
     """Main entry point for Yandex Cloud Function"""
     
-    # Handle CORS preflight
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return json_response({})
     
     path = event.get('path', '/')
     
-    # Remove /api prefix if present
     if path.startswith('/api'):
         path = path[4:]
     
-    # Route mapping
     routes = {
         ('GET', '/health'): handle_health,
         ('GET', '/categories'): handle_categories,
@@ -383,12 +412,10 @@ def handler(event, context):
         ('POST', '/verification/manual'): handle_verification_manual,
     }
     
-    # Check exact routes first
     route_key = (method, path)
     if route_key in routes:
         return routes[route_key](event, context)
     
-    # Check dynamic routes
     if path.startswith('/users/') and '/favorites' in path:
         telegram_id = path.split('/')[2]
         event.setdefault('params', {}).setdefault('path', {})['telegram_id'] = telegram_id
