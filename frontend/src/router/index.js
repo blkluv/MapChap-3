@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ProfilePage from '../views/ProfilePage.vue'
+import AnalyticsPage from '../views/AnalyticsPage.vue'
 
 const routes = [
   {
@@ -14,7 +15,22 @@ const routes = [
       requiresAuth: true
     }
   },
-  // Добавьте другие маршруты по мере необходимости
+  {
+    path: '/analytics',
+    name: 'Analytics',
+    component: AnalyticsPage,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/boost',
+    name: 'boost',
+    component: () => import('../views/ProfilePage.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  }
 ]
 
 const router = createRouter({
