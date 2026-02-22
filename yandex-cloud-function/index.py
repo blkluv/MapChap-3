@@ -359,6 +359,15 @@ def handle_update_favorites(event, context, telegram_id):
         else:
             favorites.append(offer_id)
             action = "added"
+            # Обновляем счётчик лайков и отправляем уведомление
+            db.offers.update_one({"id": offer_id}, {"$inc": {"likes": 1}})
+            try:
+                notify_new_favorite(offer_id, int(telegram_id))
+            except:
+                pass
+        
+        if action == "removed":
+            db.offers.update_one({"id": offer_id}, {"$inc": {"likes": -1}})
         
         db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": {"favorites": favorites}})
         return json_response({"success": True, "action": action, "favorites": favorites})
