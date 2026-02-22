@@ -584,6 +584,48 @@ def send_telegram_message(chat_id, text, reply_markup=None):
 
 # ==================== MAIN HANDLER ====================
 
+def get_path_param(event, param_name):
+    """Extract path parameter from API Gateway event"""
+    # Try pathParameters first (API Gateway sends params here)
+    path_params = event.get('pathParameters', {}) or {}
+    if param_name in path_params:
+        return path_params[param_name]
+    
+    # Fallback: extract from path
+    path = event.get('path', '/')
+    if path.startswith('/api'):
+        path = path[4:]
+    parts = path.strip('/').split('/')
+    
+    # Map param names to their positions
+    if param_name == 'telegram_id':
+        if 'users' in parts:
+            idx = parts.index('users')
+            if idx + 1 < len(parts) and parts[idx + 1] != 'favorites':
+                return parts[idx + 1]
+            elif idx + 1 < len(parts):
+                return parts[idx + 1]
+        if 'dashboard' in parts:
+            idx = parts.index('dashboard')
+            if idx + 1 < len(parts):
+                return parts[idx + 1]
+        if 'user' in parts:
+            idx = parts.index('user')
+            if idx + 1 < len(parts):
+                return parts[idx + 1]
+    
+    if param_name == 'offer_id':
+        if 'offer' in parts:
+            idx = parts.index('offer')
+            if idx + 1 < len(parts):
+                return parts[idx + 1]
+        if 'offers' in parts:
+            idx = parts.index('offers')
+            if idx + 1 < len(parts) and parts[idx + 1] not in ['user']:
+                return parts[idx + 1]
+    
+    return None
+
 def handler(event, context):
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
@@ -592,6 +634,10 @@ def handler(event, context):
     path = event.get('path', '/')
     if path.startswith('/api'):
         path = path[4:]
+    
+    # Log for debugging
+    print(f"Request: {method} {path}")
+    print(f"Path params: {event.get('pathParameters', {})}")
     
     # Static routes
     routes = {
@@ -612,47 +658,64 @@ def handler(event, context):
     if (method, path) in routes:
         return routes[(method, path)](event, context)
     
-    # Dynamic routes
-    parts = path.strip('/').split('/')
+    # Dynamic routes - get parameters
+    telegram_id = get_path_param(event, 'telegram_id')
+    offer_id = get_path_param(event, 'offer_id')
+    
+    # Normalize path for matching (replace actual values with placeholders)
+    normalized_path = path
+    if telegram_id and telegram_id in path:
+        normalized_path = path.replace(telegram_id, '{telegram_id}')
+    if offer_id and offer_id in path:
+        normalized_path = normalized_path.replace(offer_id, '{offer_id}')
+    
+    parts = normalized_path.strip('/').split('/')
     
     # /analytics/dashboard/{telegram_id}
     if len(parts) == 3 and parts[0] == 'analytics' and parts[1] == 'dashboard':
-        return handle_analytics_dashboard(event, context, parts[2])
+        tid = telegram_id or parts[2]
+        return handle_analytics_dashboard(event, context, tid)
     
     # /analytics/offer/{offer_id}
     if len(parts) == 3 and parts[0] == 'analytics' and parts[1] == 'offer':
-        return handle_analytics_offer(event, context, parts[2])
+        oid = offer_id or parts[2]
+        return handle_analytics_offer(event, context, oid)
     
     # /users/{telegram_id}/favorites
     if len(parts) == 3 and parts[0] == 'users' and parts[2] == 'favorites':
+        tid = telegram_id or parts[1]
         if method == 'GET':
-            return handle_get_favorites(event, context, parts[1])
+            return handle_get_favorites(event, context, tid)
         elif method == 'PUT':
-            return handle_update_favorites(event, context, parts[1])
+            return handle_update_favorites(event, context, tid)
     
     # /users/{telegram_id}
     if len(parts) == 2 and parts[0] == 'users':
+        tid = telegram_id or parts[1]
         if method == 'GET':
-            return handle_get_user(event, context, parts[1])
+            return handle_get_user(event, context, tid)
         elif method == 'PUT':
-            return handle_update_user(event, context, parts[1])
+            return handle_update_user(event, context, tid)
     
     # /offers/user/{telegram_id}
     if len(parts) == 3 and parts[0] == 'offers' and parts[1] == 'user':
-        return handle_user_offers(event, context, parts[2])
-    
-    # /offers/{offer_id}
-    if len(parts) == 2 and parts[0] == 'offers':
-        if method == 'GET':
-            return handle_get_offer(event, context, parts[1])
-        elif method == 'PUT':
-            return handle_update_offer(event, context, parts[1])
-        elif method == 'DELETE':
-            return handle_delete_offer(event, context, parts[1])
+        tid = telegram_id or parts[2]
+        return handle_user_offers(event, context, tid)
     
     # /offers/{offer_id}/boost
     if len(parts) == 3 and parts[0] == 'offers' and parts[2] == 'boost':
+        oid = offer_id or parts[1]
         if method == 'POST':
-            return handle_create_boost(event, context, parts[1])
+            return handle_create_boost(event, context, oid)
+    
+    # /offers/{offer_id}
+    if len(parts) == 2 and parts[0] == 'offers':
+        oid = offer_id or parts[1]
+        if method == 'GET':
+            return handle_get_offer(event, context, oid)
+        elif method == 'PUT':
+            return handle_update_offer(event, context, oid)
+        elif method == 'DELETE':
+            return handle_delete_offer(event, context, oid)
     
     return json_response({"error": f"Not found: {method} {path}"}, 404)
