@@ -4,7 +4,6 @@ import math
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
-import ssl
 import tempfile
 
 from pymongo import MongoClient
@@ -17,7 +16,7 @@ DADATA_API_KEY = os.environ.get("DADATA_API_KEY", "")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "khabibullaevakhrorjon@gmail.com")
 SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "+79998214758")
 
-# Yandex Cloud CA Certificate (embedded)
+# Yandex Cloud CA Certificate
 YANDEX_CA_CERT = """-----BEGIN CERTIFICATE-----
 MIIFGTCCAwGgAwIBAgIQJMM7ZIy2SYxCBgK7WcFwnjANBgkqhkiG9w0BAQ0FADAf
 MR0wGwYDVQQDExRZYW5kZXhJbnRlcm5hbFJvb3RDQTAeFw0xMzAyMTExMzQxNDNa
@@ -49,7 +48,6 @@ nZpSMALsA+EWZKwiU5bXdKs0SYqL+0bMB0RzTwUC8i7/JjTnI2T0JzG05FkLJKUh
 FxPD5e8aeqOj2nFj9g==
 -----END CERTIFICATE-----"""
 
-# MongoDB connection (lazy init)
 _client = None
 _db = None
 _ca_file = None
@@ -57,7 +55,6 @@ _ca_file = None
 def get_db():
     global _client, _db, _ca_file
     if _db is None:
-        # Создаём временный файл с CA сертификатом
         if _ca_file is None:
             _ca_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
             _ca_file.write(YANDEX_CA_CERT)
@@ -73,7 +70,6 @@ def get_db():
         _db = _client.mapchap
     return _db
 
-# ===================== UTILITIES =====================
 def json_response(data, status_code=200):
     return {
         'statusCode': status_code,
@@ -94,7 +90,22 @@ def serialize_doc(doc):
         doc['_id'] = str(doc['_id'])
     return doc
 
-# ===================== BOOST PLANS =====================
+def get_path_params(event):
+    """Extract path parameters from event"""
+    # API Gateway передаёт параметры в pathParameters
+    path_params = event.get('pathParameters', {}) or {}
+    # Также проверяем params
+    if not path_params:
+        path_params = event.get('params', {}).get('path', {}) or {}
+    return path_params
+
+def get_query_params(event):
+    """Extract query parameters from event"""
+    query_params = event.get('queryStringParameters', {}) or {}
+    if not query_params:
+        query_params = event.get('params', {}).get('query', {}) or {}
+    return query_params
+
 BOOST_PLANS = {
     "1day": {"days": 1, "name": "1 День", "price": 350, "currency": "XTR"},
     "5days": {"days": 5, "name": "5 Дней", "price": 1200, "currency": "XTR"},
@@ -105,6 +116,10 @@ BOOST_PLANS = {
 
 def handle_health(event, context):
     return json_response({"status": "ok", "version": "3.0.0", "service": "MapChap API"})
+
+def handle_debug(event, context):
+    """Debug endpoint to see raw event"""
+    return json_response({"event": event, "context": str(context)})
 
 def handle_categories(event, context):
     categories = [
@@ -175,32 +190,26 @@ def handle_telegram_auth(event, context):
     except Exception as e:
         return json_response({"error": str(e), "type": "auth_error"}, 500)
 
-def handle_get_user(event, context):
+def handle_get_user(event, context, telegram_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        telegram_id = int(params.get('telegram_id', 0))
-        
-        user = db.users.find_one({"telegram_id": telegram_id})
+        user = db.users.find_one({"telegram_id": int(telegram_id)})
         if not user:
             return json_response({"error": "User not found"}, 404)
-        
         return json_response(serialize_doc(user))
     except Exception as e:
         return json_response({"error": str(e)}, 500)
 
-def handle_update_user(event, context):
+def handle_update_user(event, context, telegram_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         
-        result = db.users.update_one({"telegram_id": telegram_id}, {"$set": body})
+        result = db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": body})
         if result.modified_count == 0:
             return json_response({"error": "User not found"}, 404)
         
-        user = db.users.find_one({"telegram_id": telegram_id})
+        user = db.users.find_one({"telegram_id": int(telegram_id)})
         return json_response(serialize_doc(user))
     except Exception as e:
         return json_response({"error": str(e)}, 500)
@@ -208,7 +217,7 @@ def handle_update_user(event, context):
 def handle_get_offers(event, context):
     try:
         db = get_db()
-        params = event.get('params', {}).get('query', {})
+        params = get_query_params(event)
         
         query = {"status": "active"}
         category = params.get('category')
@@ -235,16 +244,12 @@ def handle_get_offers(event, context):
     except Exception as e:
         return json_response({"error": str(e), "offers": [], "total": 0})
 
-def handle_get_offer(event, context):
+def handle_get_offer(event, context, offer_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        offer_id = params.get('offer_id')
-        
         offer = db.offers.find_one({"id": offer_id})
         if not offer:
             return json_response({"error": "Offer not found"}, 404)
-        
         return json_response(serialize_doc(offer))
     except Exception as e:
         return json_response({"error": str(e)}, 500)
@@ -252,7 +257,7 @@ def handle_get_offer(event, context):
 def handle_create_offer(event, context):
     try:
         db = get_db()
-        params = event.get('params', {}).get('query', {})
+        params = get_query_params(event)
         telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         
@@ -286,24 +291,18 @@ def handle_create_offer(event, context):
     except Exception as e:
         return json_response({"error": str(e)}, 500)
 
-def handle_user_offers(event, context):
+def handle_user_offers(event, context, telegram_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        telegram_id = int(params.get('telegram_id', 0))
-        
-        offers = list(db.offers.find({"user_id": telegram_id}))
+        offers = list(db.offers.find({"user_id": int(telegram_id)}))
         return json_response({"offers": [serialize_doc(o) for o in offers]})
     except Exception as e:
         return json_response({"error": str(e), "offers": []})
 
-def handle_favorites(event, context):
+def handle_favorites(event, context, telegram_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        telegram_id = int(params.get('telegram_id', 0))
-        
-        user = db.users.find_one({"telegram_id": telegram_id})
+        user = db.users.find_one({"telegram_id": int(telegram_id)})
         if not user:
             return json_response({"error": "User not found"}, 404)
         
@@ -317,15 +316,13 @@ def handle_favorites(event, context):
     except Exception as e:
         return json_response({"error": str(e), "favorites": []})
 
-def handle_update_favorites(event, context):
+def handle_update_favorites(event, context, telegram_id):
     try:
         db = get_db()
-        params = event.get('params', {}).get('path', {})
-        telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         offer_id = body.get('offer_id')
         
-        user = db.users.find_one({"telegram_id": telegram_id})
+        user = db.users.find_one({"telegram_id": int(telegram_id)})
         if not user:
             return json_response({"error": "User not found"}, 404)
         
@@ -337,7 +334,7 @@ def handle_update_favorites(event, context):
             favorites.append(offer_id)
             action = "added"
         
-        db.users.update_one({"telegram_id": telegram_id}, {"$set": {"favorites": favorites}})
+        db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": {"favorites": favorites}})
         return json_response({"success": True, "action": action, "favorites": favorites})
     except Exception as e:
         return json_response({"error": str(e)}, 500)
@@ -352,7 +349,7 @@ def handle_boost_plans(event, context):
 def handle_articles(event, context):
     try:
         db = get_db()
-        params = event.get('params', {}).get('query', {})
+        params = get_query_params(event)
         
         query = {"status": "published"}
         limit = int(params.get('limit', 20))
@@ -365,7 +362,7 @@ def handle_articles(event, context):
 def handle_verification_inn(event, context):
     try:
         db = get_db()
-        params = event.get('params', {}).get('query', {})
+        params = get_query_params(event)
         telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         inn = body.get('inn')
@@ -405,7 +402,7 @@ def handle_verification_inn(event, context):
 def handle_verification_manual(event, context):
     try:
         db = get_db()
-        params = event.get('params', {}).get('query', {})
+        params = get_query_params(event)
         telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         
@@ -435,8 +432,10 @@ def handler(event, context):
     if path.startswith('/api'):
         path = path[4:]
     
+    # Static routes
     routes = {
         ('GET', '/health'): handle_health,
+        ('GET', '/debug'): handle_debug,
         ('GET', '/categories'): handle_categories,
         ('GET', '/app-info'): handle_app_info,
         ('POST', '/auth/telegram'): handle_telegram_auth,
@@ -452,32 +451,33 @@ def handler(event, context):
     if route_key in routes:
         return routes[route_key](event, context)
     
-    if path.startswith('/users/') and '/favorites' in path:
-        telegram_id = path.split('/')[2]
-        event.setdefault('params', {}).setdefault('path', {})['telegram_id'] = telegram_id
+    # Dynamic routes - parse path manually
+    parts = path.strip('/').split('/')
+    
+    # /users/{telegram_id}/favorites
+    if len(parts) == 3 and parts[0] == 'users' and parts[2] == 'favorites':
+        telegram_id = parts[1]
         if method == 'GET':
-            return handle_favorites(event, context)
+            return handle_favorites(event, context, telegram_id)
         elif method == 'PUT':
-            return handle_update_favorites(event, context)
+            return handle_update_favorites(event, context, telegram_id)
     
-    if path.startswith('/users/'):
-        parts = path.split('/')
-        if len(parts) >= 3:
-            telegram_id = parts[2]
-            event.setdefault('params', {}).setdefault('path', {})['telegram_id'] = telegram_id
-            if method == 'GET':
-                return handle_get_user(event, context)
-            elif method == 'PUT':
-                return handle_update_user(event, context)
+    # /users/{telegram_id}
+    if len(parts) == 2 and parts[0] == 'users':
+        telegram_id = parts[1]
+        if method == 'GET':
+            return handle_get_user(event, context, telegram_id)
+        elif method == 'PUT':
+            return handle_update_user(event, context, telegram_id)
     
-    if path.startswith('/offers/user/'):
-        telegram_id = path.split('/')[3]
-        event.setdefault('params', {}).setdefault('path', {})['telegram_id'] = telegram_id
-        return handle_user_offers(event, context)
+    # /offers/user/{telegram_id}
+    if len(parts) == 3 and parts[0] == 'offers' and parts[1] == 'user':
+        telegram_id = parts[2]
+        return handle_user_offers(event, context, telegram_id)
     
-    if path.startswith('/offers/'):
-        offer_id = path.split('/')[2]
-        event.setdefault('params', {}).setdefault('path', {})['offer_id'] = offer_id
-        return handle_get_offer(event, context)
+    # /offers/{offer_id}
+    if len(parts) == 2 and parts[0] == 'offers':
+        offer_id = parts[1]
+        return handle_get_offer(event, context, offer_id)
     
     return json_response({"error": f"Route not found: {method} {path}"}, 404)
