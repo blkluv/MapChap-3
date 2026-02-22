@@ -817,7 +817,7 @@ def handle_telegram_webhook(event, context):
 """
                     reply_markup = {
                         "inline_keyboard": [[
-                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/index.html"}}
+                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/"}}
                         ]]
                     }
                     send_telegram_message(chat_id, text, reply_markup=reply_markup)
@@ -828,7 +828,7 @@ def handle_telegram_webhook(event, context):
                 if offer:
                     send_telegram_message(chat_id, f"Откройте приложение для продления буста «{offer.get('title')}»", reply_markup={
                         "inline_keyboard": [[
-                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/index.html"}}
+                            {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/"}}
                         ]]
                     })
         
@@ -865,7 +865,7 @@ def handle_telegram_webhook(event, context):
 """
                 reply_markup = {
                     "inline_keyboard": [[
-                        {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/index.html"}}
+                        {"text": "🚀 Открыть MapChap", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/"}}
                     ]]
                 }
                 send_telegram_message(chat_id, welcome_text, reply_markup=reply_markup)
