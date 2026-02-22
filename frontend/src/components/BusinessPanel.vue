@@ -650,6 +650,7 @@ import { useOffersStore } from '../stores/offersStore'
 import { apiService } from '../services/api'
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useLocale } from '../composables/useLocale'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'BusinessPanel',
@@ -658,6 +659,7 @@ export default {
     const authStore = useAuthStore()
     const businessStore = useBusinessStore()
     const offersStore = useOffersStore()
+    const router = useRouter()
     const { closePanel, showNotification } = uiStore
     const { t } = useLocale()
 
