@@ -1,23 +1,49 @@
 import os
 import uuid
-import math
 import json
-from datetime import datetime, timedelta, timezone
-from typing import Optional, List
+from datetime import datetime, timezone
 import tempfile
 
 from pymongo import MongoClient
 import httpx
 
-# ===================== CONFIG =====================
 MONGO_URL = os.environ.get("MONGO_URL", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 DADATA_API_KEY = os.environ.get("DADATA_API_KEY", "")
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "khabibullaevakhrorjon@gmail.com")
 SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "+79998214758")
 
-# Yandex Cloud CA Certificate
+# Правильный Yandex Cloud CA Certificate
 YANDEX_CA_CERT = """-----BEGIN CERTIFICATE-----
+MIIE3TCCAsWgAwIBAgIKPxb5sAAAAAAAFzANBgkqhkiG9w0BAQ0FADAfMR0wGwYD
+VQQDExRZYW5kZXhJbnRlcm5hbFJvb3RDQTAeFw0xNzA2MjAxNjQ0MzdaFw0yNzA2
+MjAxNjU0MzdaMFUxEjAQBgoJkiaJk/IsZAEZFgJydTEWMBQGCgmSJomT8ixkARkW
+BnlhbmRleDESMBAGCgmSJomT8ixkARkWAmxkMRMwEQYDVQQDEwpZYW5kZXhDTENB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqgNnjk0JKPcbsk1+KG2t
+eM1AfMnEe5RkAJuBBuwVV49snhcvO1jhKBx/pCnjr6biICc1/oAFDVgU8yVYYPwp
+WZ2vH3ZtscjJ/RAT/NS9OKKG7kKknhFhVYxua5xhoIQmm6usBNYYiTcWoFm1eHC8
+I9oddOLSscZYbh3unVRvt+3V+drVmUx9oSUKpqMgfysiv1MN6zB3vq9TFkbhz53E
+k0tEcV+W2NnDaeFhLKy284FDKLvOdTDj1EDsSAihxl7sNEKpupNuhgyy2siOqUb+
+d5mO/CRfaAKGg3E6hDM3pEi48E506dJdjPXWfHKSvuguMLRlb2RWdVocRZuyWxOh
+0QIDAQABo4HkMIHhMBAGCSsGAQQBgjcVAQQDAgEAMB0GA1UdDgQWBBRMU5uItjx+
+TOicX1+ovC1Xq2PSnzAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTALBgNVHQ8E
+BAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAfBgNVHSMEGDAWgBSrucX/oe/mUx0zOSKE
+0XbUN04tajBUBgNVHR8ETTBLMEmgR6BFhkNodHRwOi8vY3Jscy55YW5kZXgucnUv
+WWFuZGV4SW50ZXJuYWxSb290Q0EvWWFuZGV4SW50ZXJuYWxSb290Q0EuY3JsMA0G
+CSqGSIb3DQEBDQUAA4ICAQAsR5Lb4Pv2FD0Kk+4oc1GEOnehxKLsQtdV81nrU+IV
+l9pr2oNMdi8lwIolvHZRllLM4Ba5AcRH6YJ5fe7AjKm+5EdSkhqVWo2UOllRCbtS
+wmL50+erOAkxstSlRkO6b8x1L0MOBKv54E5YcQ/Wwt27ldSb6RkEmJBGvmxObAaf
+5zc51pqSqao9tnldYaCblEQ/Zmy43FliIpa2eUJoh8DqK8bVo2gcI3wbQ32tWs9u
+wvKk8fo4lAdhCwhv+QHuqau1VAY9hPU106bsFIDUmijTMxjAobKBi6CkIX6EbNHU
+Jv4DzYVLlDd2y0CADdn2F6I70xpCBn5cquSGuvFbqZjQDmIHwb7WQSxadkiGRWfc
+zVTnmiHjJONJJIpE2t+FOV3hc+8o98OzOtNaH2QQ9j6dnKvtIGKGFeNSDp0vXPOi
+QhHiIyuB7eWx+g2whktQ74UCpGDSXYnEW3s8w5wezVWIEmouq7q4rCEkTNvJ7Ico
+43AgUdPzAFS2zYktw1C+cbUALM8smvXbXrXOBzMmscjIhtXvLMrpPeh23VfdJfQB
+0rN2BmRCLUE8JOV+o0k98XMm83oN+lGkL1l+hyoj3ok1uI3JrsWOcDyjOds3ptcN
+KimJLm27ndjcxDNo/iA6gefMJuCxFRaqI+eF4P0jSkMgnnQqZkvLGFuHCw8eRDhm
+bw==
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
 MIIFGTCCAwGgAwIBAgIQJMM7ZIy2SYxCBgK7WcFwnjANBgkqhkiG9w0BAQ0FADAf
 MR0wGwYDVQQDExRZYW5kZXhJbnRlcm5hbFJvb3RDQTAeFw0xMzAyMTExMzQxNDNa
 Fw0zMzAyMTExMzUxNDJaMB8xHTAbBgNVBAMTFFlhbmRleEludGVybmFsUm9vdENB
@@ -64,8 +90,8 @@ def get_db():
             MONGO_URL,
             tls=True,
             tlsCAFile=_ca_file.name,
-            serverSelectionTimeoutMS=10000,
-            connectTimeoutMS=10000
+            serverSelectionTimeoutMS=15000,
+            connectTimeoutMS=15000
         )
         _db = _client.mapchap
     return _db
@@ -90,21 +116,8 @@ def serialize_doc(doc):
         doc['_id'] = str(doc['_id'])
     return doc
 
-def get_path_params(event):
-    """Extract path parameters from event"""
-    # API Gateway передаёт параметры в pathParameters
-    path_params = event.get('pathParameters', {}) or {}
-    # Также проверяем params
-    if not path_params:
-        path_params = event.get('params', {}).get('path', {}) or {}
-    return path_params
-
 def get_query_params(event):
-    """Extract query parameters from event"""
-    query_params = event.get('queryStringParameters', {}) or {}
-    if not query_params:
-        query_params = event.get('params', {}).get('query', {}) or {}
-    return query_params
+    return event.get('queryStringParameters', {}) or {}
 
 BOOST_PLANS = {
     "1day": {"days": 1, "name": "1 День", "price": 350, "currency": "XTR"},
@@ -112,14 +125,11 @@ BOOST_PLANS = {
     "7days": {"days": 7, "name": "7 Дней", "price": 1600, "currency": "XTR"}
 }
 
-# ===================== HANDLERS =====================
-
 def handle_health(event, context):
     return json_response({"status": "ok", "version": "3.0.0", "service": "MapChap API"})
 
 def handle_debug(event, context):
-    """Debug endpoint to see raw event"""
-    return json_response({"event": event, "context": str(context)})
+    return json_response({"event": event})
 
 def handle_categories(event, context):
     categories = [
@@ -164,7 +174,6 @@ def handle_telegram_auth(event, context):
                     "first_name": body.get('first_name', ''),
                     "last_name": body.get('last_name', ''),
                     "username": body.get('username', ''),
-                    "photo_url": body.get('photo_url', ''),
                     "last_login": datetime.now(timezone.utc)
                 }}
             )
@@ -176,7 +185,6 @@ def handle_telegram_auth(event, context):
                 "first_name": body.get('first_name', ''),
                 "last_name": body.get('last_name', ''),
                 "username": body.get('username', ''),
-                "photo_url": body.get('photo_url', ''),
                 "role": "user",
                 "is_verified": False,
                 "favorites": [],
@@ -188,7 +196,7 @@ def handle_telegram_auth(event, context):
         
         return json_response({"success": True, "user": serialize_doc(user)})
     except Exception as e:
-        return json_response({"error": str(e), "type": "auth_error"}, 500)
+        return json_response({"error": str(e)}, 500)
 
 def handle_get_user(event, context, telegram_id):
     try:
@@ -204,11 +212,7 @@ def handle_update_user(event, context, telegram_id):
     try:
         db = get_db()
         body = json.loads(event.get('body', '{}'))
-        
-        result = db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": body})
-        if result.modified_count == 0:
-            return json_response({"error": "User not found"}, 404)
-        
+        db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": body})
         user = db.users.find_one({"telegram_id": int(telegram_id)})
         return json_response(serialize_doc(user))
     except Exception as e:
@@ -224,23 +228,13 @@ def handle_get_offers(event, context):
         if category and category != 'all':
             query['category'] = category
         
-        search = params.get('search')
-        if search:
-            query['$or'] = [
-                {"title": {"$regex": search, "$options": "i"}},
-                {"description": {"$regex": search, "$options": "i"}}
-            ]
-        
         limit = int(params.get('limit', 50))
         skip = int(params.get('skip', 0))
         
         offers = list(db.offers.find(query).skip(skip).limit(limit))
         total = db.offers.count_documents(query)
         
-        return json_response({
-            "offers": [serialize_doc(o) for o in offers],
-            "total": total
-        })
+        return json_response({"offers": [serialize_doc(o) for o in offers], "total": total})
     except Exception as e:
         return json_response({"error": str(e), "offers": [], "total": 0})
 
@@ -282,7 +276,6 @@ def handle_create_offer(event, context):
             "tags": body.get('tags', []),
             "status": "active",
             "views": 0,
-            "likes": 0,
             "created_at": datetime.now(timezone.utc)
         }
         
@@ -327,12 +320,11 @@ def handle_update_favorites(event, context, telegram_id):
             return json_response({"error": "User not found"}, 404)
         
         favorites = user.get('favorites', [])
+        action = "removed" if offer_id in favorites else "added"
         if offer_id in favorites:
             favorites.remove(offer_id)
-            action = "removed"
         else:
             favorites.append(offer_id)
-            action = "added"
         
         db.users.update_one({"telegram_id": int(telegram_id)}, {"$set": {"favorites": favorites}})
         return json_response({"success": True, "action": action, "favorites": favorites})
@@ -340,21 +332,13 @@ def handle_update_favorites(event, context, telegram_id):
         return json_response({"error": str(e)}, 500)
 
 def handle_boost_plans(event, context):
-    plans = [
-        {"id": k, "days": v["days"], "name": v["name"], "price": v["price"], "currency": v["currency"]}
-        for k, v in BOOST_PLANS.items()
-    ]
+    plans = [{"id": k, **v} for k, v in BOOST_PLANS.items()]
     return json_response({"plans": plans})
 
 def handle_articles(event, context):
     try:
         db = get_db()
-        params = get_query_params(event)
-        
-        query = {"status": "published"}
-        limit = int(params.get('limit', 20))
-        
-        articles = list(db.articles.find(query).sort("created_at", -1).limit(limit))
+        articles = list(db.articles.find({"status": "published"}).sort("created_at", -1).limit(20))
         return json_response({"articles": [serialize_doc(a) for a in articles], "total": len(articles)})
     except Exception as e:
         return json_response({"error": str(e), "articles": [], "total": 0})
@@ -367,35 +351,22 @@ def handle_verification_inn(event, context):
         body = json.loads(event.get('body', '{}'))
         inn = body.get('inn')
         
-        if not DADATA_API_KEY:
-            return json_response({"error": "DaData not configured"}, 500)
-        
         with httpx.Client(timeout=10) as client:
             response = client.post(
                 "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party",
                 json={"query": inn},
-                headers={
-                    "Authorization": f"Token {DADATA_API_KEY}",
-                    "Content-Type": "application/json"
-                }
+                headers={"Authorization": f"Token {DADATA_API_KEY}", "Content-Type": "application/json"}
             )
             data = response.json()
             
             if data.get('suggestions'):
                 company = data['suggestions'][0]
-                db.users.update_one(
-                    {"telegram_id": telegram_id},
-                    {"$set": {
-                        "role": "business_owner",
-                        "is_verified": True,
-                        "verification_type": "inn",
-                        "inn": inn,
-                        "company_name": company['value']
-                    }}
-                )
+                db.users.update_one({"telegram_id": telegram_id}, {"$set": {
+                    "role": "business_owner", "is_verified": True, "verification_type": "inn",
+                    "inn": inn, "company_name": company['value']
+                }})
                 return json_response({"success": True, "company_name": company['value']})
-            else:
-                return json_response({"error": "ИНН не найден"}, 400)
+            return json_response({"error": "ИНН не найден"}, 400)
     except Exception as e:
         return json_response({"error": str(e)}, 500)
 
@@ -406,33 +377,23 @@ def handle_verification_manual(event, context):
         telegram_id = int(params.get('telegram_id', 0))
         body = json.loads(event.get('body', '{}'))
         
-        db.users.update_one(
-            {"telegram_id": telegram_id},
-            {"$set": {
-                "role": "business_owner",
-                "is_verified": True,
-                "verification_type": "manual",
-                "phone": body.get('phone'),
-                "email": body.get('email'),
-                "company_name": body.get('company_name')
-            }}
-        )
+        db.users.update_one({"telegram_id": telegram_id}, {"$set": {
+            "role": "business_owner", "is_verified": True, "verification_type": "manual",
+            "phone": body.get('phone'), "email": body.get('email'), "company_name": body.get('company_name')
+        }})
         return json_response({"success": True, "message": "Бизнес-аккаунт активирован"})
     except Exception as e:
         return json_response({"error": str(e)}, 500)
 
-# ===================== MAIN HANDLER =====================
 def handler(event, context):
     method = event.get('httpMethod', 'GET')
     if method == 'OPTIONS':
         return json_response({})
     
     path = event.get('path', '/')
-    
     if path.startswith('/api'):
         path = path[4:]
     
-    # Static routes
     routes = {
         ('GET', '/health'): handle_health,
         ('GET', '/debug'): handle_debug,
@@ -451,33 +412,18 @@ def handler(event, context):
     if route_key in routes:
         return routes[route_key](event, context)
     
-    # Dynamic routes - parse path manually
     parts = path.strip('/').split('/')
     
-    # /users/{telegram_id}/favorites
     if len(parts) == 3 and parts[0] == 'users' and parts[2] == 'favorites':
-        telegram_id = parts[1]
-        if method == 'GET':
-            return handle_favorites(event, context, telegram_id)
-        elif method == 'PUT':
-            return handle_update_favorites(event, context, telegram_id)
+        return handle_favorites(event, context, parts[1]) if method == 'GET' else handle_update_favorites(event, context, parts[1])
     
-    # /users/{telegram_id}
     if len(parts) == 2 and parts[0] == 'users':
-        telegram_id = parts[1]
-        if method == 'GET':
-            return handle_get_user(event, context, telegram_id)
-        elif method == 'PUT':
-            return handle_update_user(event, context, telegram_id)
+        return handle_get_user(event, context, parts[1]) if method == 'GET' else handle_update_user(event, context, parts[1])
     
-    # /offers/user/{telegram_id}
     if len(parts) == 3 and parts[0] == 'offers' and parts[1] == 'user':
-        telegram_id = parts[2]
-        return handle_user_offers(event, context, telegram_id)
+        return handle_user_offers(event, context, parts[2])
     
-    # /offers/{offer_id}
     if len(parts) == 2 and parts[0] == 'offers':
-        offer_id = parts[1]
-        return handle_get_offer(event, context, offer_id)
+        return handle_get_offer(event, context, parts[1])
     
     return json_response({"error": f"Route not found: {method} {path}"}, 404)
