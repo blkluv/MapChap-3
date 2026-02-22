@@ -1,0 +1,870 @@
+{
+  "total_tests": 9,
+  "passed_tests": 9,
+  "success_rate": 100.0,
+  "test_details": [
+    {
+      "name": "Health Check",
+      "success": true,
+      "details": "Status: ok, Version: 3.0.0",
+      "response_data": {
+        "status": "ok",
+        "version": "3.0.0",
+        "service": "MapChap API"
+      }
+    },
+    {
+      "name": "User Endpoint",
+      "success": true,
+      "details": "Role: business_owner, Verified: True",
+      "response_data": {
+        "_id": "699ab2ac0525d34db8bbc7d7",
+        "telegram_id": 111222333,
+        "created_at": "2026-02-22T07:39:24.604000",
+        "favorites": [],
+        "first_name": "\u0411\u0438\u0437\u043d\u0435\u0441",
+        "id": "14e26b05-54b3-4b9a-aa3e-f2479009cf6f",
+        "is_verified": true,
+        "last_name": "\u0412\u043b\u0430\u0434\u0435\u043b\u0435\u0446",
+        "role": "business_owner"
+      }
+    },
+    {
+      "name": "Categories Endpoint",
+      "success": true,
+      "details": "Found 13 categories",
+      "response_data": {
+        "categories": [
+          {
+            "id": "food",
+            "name": "\u0415\u0434\u0430 \u0438 \u0440\u0435\u0441\u0442\u043e\u0440\u0430\u043d\u044b",
+            "icon": "\ud83c\udf55",
+            "color": "#FF6B6B",
+            "mapIcon": "restaurant"
+          },
+          {
+            "id": "shopping",
+            "name": "\u041c\u0430\u0433\u0430\u0437\u0438\u043d\u044b",
+            "icon": "\ud83d\udecd\ufe0f",
+            "color": "#4ECDC4",
+            "mapIcon": "shopping"
+          },
+          {
+            "id": "grocery",
+            "name": "\u041f\u0440\u043e\u0434\u0443\u043a\u0442\u044b",
+            "icon": "\ud83d\uded2",
+            "color": "#22C55E",
+            "mapIcon": "grocery"
+          },
+          {
+            "id": "beauty",
+            "name": "\u0421\u0430\u043b\u043e\u043d\u044b \u043a\u0440\u0430\u0441\u043e\u0442\u044b",
+            "icon": "\ud83d\udc84",
+            "color": "#FFD166",
+            "mapIcon": "beauty"
+          },
+          {
+            "id": "services",
+            "name": "\u0423\u0441\u043b\u0443\u0433\u0438",
+            "icon": "\ud83d\udd27",
+            "color": "#06D6A0",
+            "mapIcon": "service"
+          },
+          {
+            "id": "medical",
+            "name": "\u041c\u0435\u0434\u0438\u0446\u0438\u043d\u0430",
+            "icon": "\u2695\ufe0f",
+            "color": "#118AB2",
+            "mapIcon": "medical"
+          },
+          {
+            "id": "furniture",
+            "name": "\u041c\u0435\u0431\u0435\u043b\u044c \u0438 \u0434\u0435\u043a\u043e\u0440",
+            "icon": "\ud83d\udecb\ufe0f",
+            "color": "#073B4C",
+            "mapIcon": "furniture"
+          },
+          {
+            "id": "pharmacy",
+            "name": "\u0410\u043f\u0442\u0435\u043a\u0438",
+            "icon": "\ud83d\udc8a",
+            "color": "#EF476F",
+            "mapIcon": "pharmacy"
+          },
+          {
+            "id": "fitness",
+            "name": "\u0424\u0438\u0442\u043d\u0435\u0441 \u043a\u043b\u0443\u0431\u044b",
+            "icon": "\ud83d\udcaa",
+            "color": "#F97316",
+            "mapIcon": "fitness"
+          },
+          {
+            "id": "entertainment",
+            "name": "\u0420\u0430\u0437\u0432\u043b\u0435\u0447\u0435\u043d\u0438\u044f",
+            "icon": "\ud83c\udfad",
+            "color": "#7209B7",
+            "mapIcon": "entertainment"
+          },
+          {
+            "id": "education",
+            "name": "\u041e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435",
+            "icon": "\ud83d\udcda",
+            "color": "#F72585",
+            "mapIcon": "education"
+          },
+          {
+            "id": "auto",
+            "name": "\u0410\u0432\u0442\u043e\u0441\u0435\u0440\u0432\u0438\u0441\u044b",
+            "icon": "\ud83d\ude97",
+            "color": "#4361EE",
+            "mapIcon": "auto"
+          },
+          {
+            "id": "hotel",
+            "name": "\u041e\u0442\u0435\u043b\u0438",
+            "icon": "\ud83c\udfe8",
+            "color": "#4CC9F0",
+            "mapIcon": "hotel"
+          }
+        ]
+      }
+    },
+    {
+      "name": "User Offers",
+      "success": true,
+      "details": "Found 1 offers",
+      "response_data": {
+        "offers": [
+          {
+            "_id": "699ab2ac0525d34db8bbc7d9",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "created_at": "2026-02-22T07:39:24.608000",
+            "description": "\u041e\u0442\u043b\u0438\u0447\u043d\u043e\u0435 \u043c\u0435\u0441\u0442\u043e \u0434\u043b\u044f \u043e\u0442\u0434\u044b\u0445\u0430",
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "status": "active",
+            "user_id": 111222333,
+            "views": 150
+          }
+        ]
+      }
+    },
+    {
+      "name": "Analytics Dashboard (7d)",
+      "success": true,
+      "details": "Period: 7d, Offers: 1, Views: 28",
+      "response_data": {
+        "period": "7d",
+        "summary": {
+          "total_offers": 1,
+          "active_offers": 1,
+          "total_views": 28,
+          "unique_visitors": 28,
+          "trend_percent": 16.7,
+          "trend_direction": "up",
+          "total_favorites": 0,
+          "active_boosts": 0
+        },
+        "chart_data": [
+          {
+            "date": "2026-02-15",
+            "views": 2
+          },
+          {
+            "date": "2026-02-16",
+            "views": 5
+          },
+          {
+            "date": "2026-02-17",
+            "views": 4
+          },
+          {
+            "date": "2026-02-18",
+            "views": 4
+          },
+          {
+            "date": "2026-02-19",
+            "views": 4
+          },
+          {
+            "date": "2026-02-20",
+            "views": 3
+          },
+          {
+            "date": "2026-02-21",
+            "views": 4
+          },
+          {
+            "date": "2026-02-22",
+            "views": 2
+          }
+        ],
+        "offers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 28,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "top_performers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 28,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "need_attention": [],
+        "recommendations": [
+          {
+            "type": "opportunity",
+            "priority": "medium",
+            "title": "\u0412\u0441\u0435 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u0431\u0435\u0437 \u0431\u0443\u0441\u0442\u0430",
+            "text": "\u0411\u0443\u0441\u0442 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u044b \u0432 3-5 \u0440\u0430\u0437",
+            "action": "buy_boost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Analytics Dashboard (30d)",
+      "success": true,
+      "details": "Period: 30d, Offers: 1, Views: 100",
+      "response_data": {
+        "period": "30d",
+        "summary": {
+          "total_offers": 1,
+          "active_offers": 1,
+          "total_views": 100,
+          "unique_visitors": 100,
+          "trend_percent": 100,
+          "trend_direction": "up",
+          "total_favorites": 0,
+          "active_boosts": 0
+        },
+        "chart_data": [
+          {
+            "date": "2026-01-23",
+            "views": 2
+          },
+          {
+            "date": "2026-01-24",
+            "views": 3
+          },
+          {
+            "date": "2026-01-25",
+            "views": 3
+          },
+          {
+            "date": "2026-01-26",
+            "views": 3
+          },
+          {
+            "date": "2026-01-27",
+            "views": 2
+          },
+          {
+            "date": "2026-01-28",
+            "views": 3
+          },
+          {
+            "date": "2026-01-29",
+            "views": 4
+          },
+          {
+            "date": "2026-01-30",
+            "views": 3
+          },
+          {
+            "date": "2026-01-31",
+            "views": 3
+          },
+          {
+            "date": "2026-02-01",
+            "views": 3
+          },
+          {
+            "date": "2026-02-02",
+            "views": 2
+          },
+          {
+            "date": "2026-02-03",
+            "views": 3
+          },
+          {
+            "date": "2026-02-04",
+            "views": 4
+          },
+          {
+            "date": "2026-02-05",
+            "views": 3
+          },
+          {
+            "date": "2026-02-06",
+            "views": 3
+          },
+          {
+            "date": "2026-02-07",
+            "views": 3
+          },
+          {
+            "date": "2026-02-08",
+            "views": 3
+          },
+          {
+            "date": "2026-02-09",
+            "views": 3
+          },
+          {
+            "date": "2026-02-10",
+            "views": 4
+          },
+          {
+            "date": "2026-02-11",
+            "views": 3
+          },
+          {
+            "date": "2026-02-12",
+            "views": 3
+          },
+          {
+            "date": "2026-02-13",
+            "views": 4
+          },
+          {
+            "date": "2026-02-14",
+            "views": 3
+          },
+          {
+            "date": "2026-02-15",
+            "views": 4
+          },
+          {
+            "date": "2026-02-16",
+            "views": 5
+          },
+          {
+            "date": "2026-02-17",
+            "views": 4
+          },
+          {
+            "date": "2026-02-18",
+            "views": 4
+          },
+          {
+            "date": "2026-02-19",
+            "views": 4
+          },
+          {
+            "date": "2026-02-20",
+            "views": 3
+          },
+          {
+            "date": "2026-02-21",
+            "views": 4
+          },
+          {
+            "date": "2026-02-22",
+            "views": 2
+          }
+        ],
+        "offers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 100,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "top_performers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 100,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "need_attention": [],
+        "recommendations": [
+          {
+            "type": "opportunity",
+            "priority": "medium",
+            "title": "\u0412\u0441\u0435 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u0431\u0435\u0437 \u0431\u0443\u0441\u0442\u0430",
+            "text": "\u0411\u0443\u0441\u0442 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u044b \u0432 3-5 \u0440\u0430\u0437",
+            "action": "buy_boost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Analytics Dashboard (90d)",
+      "success": true,
+      "details": "Period: 90d, Offers: 1, Views: 100",
+      "response_data": {
+        "period": "90d",
+        "summary": {
+          "total_offers": 1,
+          "active_offers": 1,
+          "total_views": 100,
+          "unique_visitors": 100,
+          "trend_percent": 100,
+          "trend_direction": "up",
+          "total_favorites": 0,
+          "active_boosts": 0
+        },
+        "chart_data": [
+          {
+            "date": "2026-01-23",
+            "views": 2
+          },
+          {
+            "date": "2026-01-24",
+            "views": 3
+          },
+          {
+            "date": "2026-01-25",
+            "views": 3
+          },
+          {
+            "date": "2026-01-26",
+            "views": 3
+          },
+          {
+            "date": "2026-01-27",
+            "views": 2
+          },
+          {
+            "date": "2026-01-28",
+            "views": 3
+          },
+          {
+            "date": "2026-01-29",
+            "views": 4
+          },
+          {
+            "date": "2026-01-30",
+            "views": 3
+          },
+          {
+            "date": "2026-01-31",
+            "views": 3
+          },
+          {
+            "date": "2026-02-01",
+            "views": 3
+          },
+          {
+            "date": "2026-02-02",
+            "views": 2
+          },
+          {
+            "date": "2026-02-03",
+            "views": 3
+          },
+          {
+            "date": "2026-02-04",
+            "views": 4
+          },
+          {
+            "date": "2026-02-05",
+            "views": 3
+          },
+          {
+            "date": "2026-02-06",
+            "views": 3
+          },
+          {
+            "date": "2026-02-07",
+            "views": 3
+          },
+          {
+            "date": "2026-02-08",
+            "views": 3
+          },
+          {
+            "date": "2026-02-09",
+            "views": 3
+          },
+          {
+            "date": "2026-02-10",
+            "views": 4
+          },
+          {
+            "date": "2026-02-11",
+            "views": 3
+          },
+          {
+            "date": "2026-02-12",
+            "views": 3
+          },
+          {
+            "date": "2026-02-13",
+            "views": 4
+          },
+          {
+            "date": "2026-02-14",
+            "views": 3
+          },
+          {
+            "date": "2026-02-15",
+            "views": 4
+          },
+          {
+            "date": "2026-02-16",
+            "views": 5
+          },
+          {
+            "date": "2026-02-17",
+            "views": 4
+          },
+          {
+            "date": "2026-02-18",
+            "views": 4
+          },
+          {
+            "date": "2026-02-19",
+            "views": 4
+          },
+          {
+            "date": "2026-02-20",
+            "views": 3
+          },
+          {
+            "date": "2026-02-21",
+            "views": 4
+          },
+          {
+            "date": "2026-02-22",
+            "views": 2
+          }
+        ],
+        "offers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 100,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "top_performers": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views": 100,
+            "total_views": 150,
+            "has_boost": false,
+            "boost_expires": null,
+            "status": "active"
+          }
+        ],
+        "need_attention": [],
+        "recommendations": [
+          {
+            "type": "opportunity",
+            "priority": "medium",
+            "title": "\u0412\u0441\u0435 \u043e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u044f \u0431\u0435\u0437 \u0431\u0443\u0441\u0442\u0430",
+            "text": "\u0411\u0443\u0441\u0442 \u0443\u0432\u0435\u043b\u0438\u0447\u0438\u0432\u0430\u0435\u0442 \u043f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u044b \u0432 3-5 \u0440\u0430\u0437",
+            "action": "buy_boost"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Offer Analytics",
+      "success": true,
+      "details": "Offer: \u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435, Views: 100, Peak: 4:00",
+      "response_data": {
+        "offer_id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+        "offer_title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+        "period": "30d",
+        "summary": {
+          "total_views": 100,
+          "unique_visitors": 100,
+          "avg_views_per_day": 3.3,
+          "trend_percent": 100,
+          "trend_direction": "up",
+          "favorites_count": 0,
+          "conversion_rate": 0.0,
+          "peak_hour": "4:00"
+        },
+        "charts": {
+          "views_by_day": [
+            {
+              "date": "2026-01-23",
+              "views": 2
+            },
+            {
+              "date": "2026-01-24",
+              "views": 3
+            },
+            {
+              "date": "2026-01-25",
+              "views": 3
+            },
+            {
+              "date": "2026-01-26",
+              "views": 3
+            },
+            {
+              "date": "2026-01-27",
+              "views": 2
+            },
+            {
+              "date": "2026-01-28",
+              "views": 3
+            },
+            {
+              "date": "2026-01-29",
+              "views": 4
+            },
+            {
+              "date": "2026-01-30",
+              "views": 3
+            },
+            {
+              "date": "2026-01-31",
+              "views": 3
+            },
+            {
+              "date": "2026-02-01",
+              "views": 3
+            },
+            {
+              "date": "2026-02-02",
+              "views": 2
+            },
+            {
+              "date": "2026-02-03",
+              "views": 3
+            },
+            {
+              "date": "2026-02-04",
+              "views": 4
+            },
+            {
+              "date": "2026-02-05",
+              "views": 3
+            },
+            {
+              "date": "2026-02-06",
+              "views": 3
+            },
+            {
+              "date": "2026-02-07",
+              "views": 3
+            },
+            {
+              "date": "2026-02-08",
+              "views": 3
+            },
+            {
+              "date": "2026-02-09",
+              "views": 3
+            },
+            {
+              "date": "2026-02-10",
+              "views": 4
+            },
+            {
+              "date": "2026-02-11",
+              "views": 3
+            },
+            {
+              "date": "2026-02-12",
+              "views": 3
+            },
+            {
+              "date": "2026-02-13",
+              "views": 4
+            },
+            {
+              "date": "2026-02-14",
+              "views": 3
+            },
+            {
+              "date": "2026-02-15",
+              "views": 4
+            },
+            {
+              "date": "2026-02-16",
+              "views": 5
+            },
+            {
+              "date": "2026-02-17",
+              "views": 4
+            },
+            {
+              "date": "2026-02-18",
+              "views": 4
+            },
+            {
+              "date": "2026-02-19",
+              "views": 4
+            },
+            {
+              "date": "2026-02-20",
+              "views": 3
+            },
+            {
+              "date": "2026-02-21",
+              "views": 4
+            },
+            {
+              "date": "2026-02-22",
+              "views": 2
+            }
+          ],
+          "views_by_hour": [
+            {
+              "hour": "0:00",
+              "views": 4
+            },
+            {
+              "hour": "1:00",
+              "views": 4
+            },
+            {
+              "hour": "2:00",
+              "views": 4
+            },
+            {
+              "hour": "3:00",
+              "views": 4
+            },
+            {
+              "hour": "4:00",
+              "views": 5
+            },
+            {
+              "hour": "5:00",
+              "views": 5
+            },
+            {
+              "hour": "6:00",
+              "views": 5
+            },
+            {
+              "hour": "7:00",
+              "views": 5
+            },
+            {
+              "hour": "8:00",
+              "views": 4
+            },
+            {
+              "hour": "9:00",
+              "views": 4
+            },
+            {
+              "hour": "10:00",
+              "views": 4
+            },
+            {
+              "hour": "11:00",
+              "views": 4
+            },
+            {
+              "hour": "12:00",
+              "views": 4
+            },
+            {
+              "hour": "13:00",
+              "views": 4
+            },
+            {
+              "hour": "14:00",
+              "views": 4
+            },
+            {
+              "hour": "15:00",
+              "views": 4
+            },
+            {
+              "hour": "16:00",
+              "views": 4
+            },
+            {
+              "hour": "17:00",
+              "views": 4
+            },
+            {
+              "hour": "18:00",
+              "views": 4
+            },
+            {
+              "hour": "19:00",
+              "views": 4
+            },
+            {
+              "hour": "20:00",
+              "views": 4
+            },
+            {
+              "hour": "21:00",
+              "views": 4
+            },
+            {
+              "hour": "22:00",
+              "views": 4
+            },
+            {
+              "hour": "23:00",
+              "views": 4
+            }
+          ]
+        },
+        "boost": null,
+        "recommendations": [
+          {
+            "type": "engagement",
+            "priority": "medium",
+            "title": "\u041d\u0438\u0437\u043a\u0430\u044f \u0432\u043e\u0432\u043b\u0435\u0447\u0451\u043d\u043d\u043e\u0441\u0442\u044c",
+            "text": "\u041f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0438 \u043d\u0435 \u0432\u043e\u0437\u0432\u0440\u0430\u0449\u0430\u044e\u0442\u0441\u044f. \u0414\u043e\u0431\u0430\u0432\u044c\u0442\u0435 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0443 \u043b\u043e\u044f\u043b\u044c\u043d\u043e\u0441\u0442\u0438",
+            "action": "add_promo"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Compare Analytics",
+      "success": true,
+      "details": "Compared 1 offers",
+      "response_data": {
+        "comparison": [
+          {
+            "id": "de28d200-fe36-4f03-a17b-bbe90947e668",
+            "title": "\u0422\u0435\u0441\u0442\u043e\u0432\u043e\u0435 \u041a\u0430\u0444\u0435",
+            "category": "food",
+            "views_30d": 100,
+            "total_views": 150,
+            "favorites": 0,
+            "created_at": "2026-02-22T07:39:24.608000"
+          }
+        ]
+      }
+    }
+  ],
+  "timestamp": "2026-02-22T07:41:26.284789"
+}
