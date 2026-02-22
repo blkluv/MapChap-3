@@ -2,72 +2,76 @@
 
 ## Дата обновления: 22 февраля 2026
 
-## 🎉 СТАТУС: ВСЕ ПРОБЛЕМЫ ИСПРАВЛЕНЫ!
+## 🎉 СТАТУС: ВСЕ ЗАДАЧИ ВЫПОЛНЕНЫ!
 
-## Исправленные проблемы
+## Выполнено в этой сессии
 
-### ✅ Бизнес-панель
-- Исправлен переход с верификации (Шаг 1) на создание объявления (Шаг 2)
-- Убран setTimeout который вызывал проблемы
-- Теперь переход происходит немедленно после успешной верификации
+### ✅ 1. HTTPS через Yandex Cloud
+- Фронтенд доступен по HTTPS: `https://storage.yandexcloud.net/mapchap-frontend/`
+- Сертификат SSL автоматический от Yandex Cloud
 
-### ✅ Авторизация
-- Добавлена поддержка сессии через localStorage
-- Демо-режим работает вне Telegram - это нормальное поведение
-- В реальном Telegram Mini App авторизация работает через WebApp API
+### ✅ 2. Убрана верификация через DaData/ИНН
+- Оставлена только ручная верификация бизнеса
+- Форма: название компании, адрес, телефон, описание
 
-### ✅ Карта и объявления
-- Координаты сохраняются в формате [lat, lng]
-- Добавлено геокодирование через Yandex Geocoder
-- Маркеры отображаются на карте корректно
+### ✅ 3. Telegram Bot Push-уведомления
+Бот @mapchap_bot теперь отправляет:
+- 👁 Уведомление о новом просмотре объявления (раз в час)
+- ❤️ Уведомление когда кто-то добавил в избранное
+- ⚡ Уведомление об активации буста
+- ⏰ Напоминание о скором истечении буста
 
-### ✅ Верификация ИНН
-- Работает без DaData (fallback упрощённая верификация)
-- Поддержка ИНН России (10/12 цифр), Казахстана (БИН 12), Беларуси (УНП 9)
+**Команды бота:**
+- /start - Приветствие + кнопка открыть Mini App
+- /notifications - Включить/отключить уведомления
+- /stats - Статистика (для бизнес-аккаунтов)
+- /help - Справка
 
 ## Рабочие URL
-- **API Gateway**: https://d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
-- **Frontend**: http://mapchap-frontend.website.yandexcloud.net
+- **Frontend (HTTPS)**: https://storage.yandexcloud.net/mapchap-frontend/
+- **Frontend (HTTP)**: http://mapchap-frontend.website.yandexcloud.net
+- **API**: https://d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
 - **Telegram Bot**: @mapchap_bot
 
-## Тестовые результаты
-- Backend: 100% (8/8 тестов)
-- Frontend: 95% (13/14 тестов)
+## Yandex Cloud ресурсы
+- **Folder ID**: b1gfh042gbr60ukjqqi0
+- **Function ID**: d4ekri024dh40qmoh0m5
+- **API Gateway ID**: d5djdb4t6ohnfrpfaaic
+- **MongoDB Cluster ID**: c9q57kp6i9hmo0gbi3p3
+- **Object Storage Bucket**: mapchap-frontend
+- **CDN Origin Group**: 1291160975207484542
 
-## Доступные API Endpoints
+## API Endpoints
 ```
-GET  /api/health              - проверка здоровья
+GET  /api/health              - проверка
 GET  /api/db-test             - тест MongoDB
-GET  /api/categories          - категории (13 шт)
+GET  /api/categories          - категории
 POST /api/auth/telegram       - авторизация
-POST /api/verification/inn    - верификация ИНН
-POST /api/verification/manual - ручная верификация
+POST /api/verification/manual - ручная верификация (единственная!)
 GET  /api/users/{id}          - профиль
 PUT  /api/users/{id}          - обновление
 GET  /api/users/{id}/favorites - избранное
-PUT  /api/users/{id}/favorites - добавить/удалить
+PUT  /api/users/{id}/favorites - добавить/удалить + push-уведомление
 GET  /api/offers              - список
 POST /api/offers              - создание
-GET  /api/offers/{id}         - детали
+GET  /api/offers/{id}         - детали + push-уведомление о просмотре
 PUT  /api/offers/{id}         - обновление
 DELETE /api/offers/{id}       - удаление
 GET  /api/offers/user/{id}    - объявления пользователя
-POST /api/offers/{id}/boost   - буст
+POST /api/offers/{id}/boost   - буст + push-уведомление
 GET  /api/analytics/dashboard/{id} - аналитика
 GET  /api/analytics/offer/{id}     - статистика
-GET  /api/boosts/plans        - тарифы
-GET  /api/articles            - статьи
-POST /api/telegram/webhook    - webhook
+POST /api/telegram/webhook    - webhook бота
 ```
 
-## Следующие шаги (P1)
-- [ ] Настроить HTTPS для Object Storage
-- [ ] Добавить DaData API ключ для полной верификации ИНН
-- [ ] Настроить CI/CD
+## Telegram Bot функции
+- Приветственное сообщение с кнопкой Mini App
+- Push-уведомления владельцам бизнесов
+- Команды: /start, /notifications, /stats, /help
+- Inline-кнопки для быстрых действий
+- Callback обработка (boost, toggle notifications)
 
-## Архитектура
-- Frontend: Vue.js 3 + Vite
-- Backend: Python 3.12 + Yandex Cloud Functions
-- Database: Yandex Managed MongoDB
-- Storage: Yandex Object Storage
-- API: Yandex API Gateway (OpenAPI 3.0)
+## Следующие шаги (опционально)
+- [ ] Добавить свой домен с HTTPS
+- [ ] Интеграция оплаты через Telegram Stars
+- [ ] Расширить аналитику (воронка конверсий)
