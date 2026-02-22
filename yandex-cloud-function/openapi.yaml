@@ -1,0 +1,246 @@
+openapi: 3.0.0
+info:
+  title: MapChap API
+  version: "3.0.0"
+  description: API для Telegram Mini App MapChap
+
+x-yc-apigateway:
+  cors:
+    origin: '*'
+    methods: '*'
+    allowedHeaders: '*'
+
+paths:
+  /api/health:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Health check
+
+  /api/categories:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Categories list
+
+  /api/app-info:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: App info
+
+  /api/auth/telegram:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Telegram auth
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Headers: '*'
+
+  /api/users/{telegram_id}:
+    get:
+      parameters:
+        - name: telegram_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: User data
+    put:
+      parameters:
+        - name: telegram_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Updated user
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, PUT, OPTIONS'
+          Access-Control-Allow-Headers: '*'
+
+  /api/users/{telegram_id}/favorites:
+    get:
+      parameters:
+        - name: telegram_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: User favorites
+    put:
+      parameters:
+        - name: telegram_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Updated favorites
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, PUT, OPTIONS'
+          Access-Control-Allow-Headers: '*'
+
+  /api/offers:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Offers list
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Created offer
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+          Access-Control-Allow-Headers: '*'
+
+  /api/offers/{offer_id}:
+    get:
+      parameters:
+        - name: offer_id
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Offer details
+
+  /api/offers/user/{telegram_id}:
+    get:
+      parameters:
+        - name: telegram_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: User offers
+
+  /api/articles:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Articles list
+
+  /api/boosts/plans:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Boost plans
+
+  /api/verification/inn:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: INN verification
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Headers: '*'
+
+  /api/verification/manual:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: ${FUNCTION_ID}
+      responses:
+        '200':
+          description: Manual verification
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'POST, OPTIONS'
+          Access-Control-Allow-Headers: '*'
