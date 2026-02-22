@@ -1694,6 +1694,8 @@ export default {
 }
 .action-btn:hover { background: #1a1a1a; color: #fff; border-color: #fff; }
 .action-btn span { font-size: 20px; }
+.action-btn.analytics-btn { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-color: #6366f1; color: white; }
+.action-btn.analytics-btn:hover { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
 
 /* Offers list */
 .offers-list { display: flex; flex-direction: column; gap: 12px; }
