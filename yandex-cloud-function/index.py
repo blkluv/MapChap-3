@@ -9,7 +9,6 @@ from pymongo import MongoClient
 
 MONGO_URL = os.environ.get("MONGO_URL", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-DADATA_API_KEY = os.environ.get("DADATA_API_KEY", "")
 SUPPORT_EMAIL = "khabibullaevakhrorjon@gmail.com"
 SUPPORT_PHONE = "+79998214758"
 
@@ -52,6 +51,175 @@ def serialize_doc(doc):
 
 def get_query_params(event):
     return event.get('queryStringParameters', {}) or {}
+
+# ==================== TELEGRAM BOT FUNCTIONS ====================
+
+def send_telegram_message(chat_id, text, parse_mode="HTML", reply_markup=None):
+    """Отправка сообщения через Telegram Bot API"""
+    if not TELEGRAM_BOT_TOKEN:
+        print("⚠️ TELEGRAM_BOT_TOKEN not configured")
+        return False
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": parse_mode
+    }
+    if reply_markup:
+        payload["reply_markup"] = json.dumps(reply_markup)
+    
+    try:
+        with httpx.Client(timeout=10) as client:
+            response = client.post(url, json=payload)
+            result = response.json()
+            if not result.get("ok"):
+                print(f"❌ Telegram error: {result}")
+            return result.get("ok", False)
+    except Exception as e:
+        print(f"❌ Send message error: {e}")
+        return False
+
+def notify_new_view(offer_id, viewer_telegram_id=None):
+    """Уведомление владельцу о новом просмотре"""
+    try:
+        db = get_db()
+        offer = db.offers.find_one({"id": offer_id})
+        if not offer:
+            return
+        
+        owner = db.users.find_one({"telegram_id": offer.get("user_id")})
+        if not owner or not owner.get("notifications_enabled", True):
+            return
+        
+        # Проверяем, не отправляли ли уведомление недавно (раз в час)
+        last_notify = db.notifications.find_one({
+            "offer_id": offer_id,
+            "type": "view",
+            "created_at": {"$gte": datetime.now(timezone.utc) - timedelta(hours=1)}
+        })
+        if last_notify:
+            return
+        
+        # Формируем сообщение
+        text = f"""
+👁 <b>Новый просмотр!</b>
+
+Ваше объявление «{offer.get('title')}» просмотрели.
+
+📊 Всего просмотров: {offer.get('views', 0) + 1}
+❤️ В избранном: {offer.get('likes', 0)}
+
+<i>Хотите больше просмотров? Попробуйте буст!</i>
+"""
+        
+        # Кнопка для открытия аналитики
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "📊 Аналитика", "web_app": {"url": f"https://mapchap-frontend.website.yandexcloud.net/analytics"}},
+                {"text": "⚡ Буст", "callback_data": f"boost_{offer_id}"}
+            ]]
+        }
+        
+        send_telegram_message(owner["telegram_id"], text, reply_markup=reply_markup)
+        
+        # Сохраняем уведомление
+        db.notifications.insert_one({
+            "id": str(uuid.uuid4()),
+            "offer_id": offer_id,
+            "user_id": owner["telegram_id"],
+            "type": "view",
+            "created_at": datetime.now(timezone.utc)
+        })
+    except Exception as e:
+        print(f"❌ notify_new_view error: {e}")
+
+def notify_new_favorite(offer_id, fan_telegram_id):
+    """Уведомление владельцу когда объявление добавили в избранное"""
+    try:
+        db = get_db()
+        offer = db.offers.find_one({"id": offer_id})
+        if not offer:
+            return
+        
+        owner = db.users.find_one({"telegram_id": offer.get("user_id")})
+        if not owner or not owner.get("notifications_enabled", True):
+            return
+        
+        fan = db.users.find_one({"telegram_id": fan_telegram_id})
+        fan_name = fan.get("first_name", "Кто-то") if fan else "Кто-то"
+        
+        text = f"""
+❤️ <b>Новое добавление в избранное!</b>
+
+<b>{fan_name}</b> добавил(а) «{offer.get('title')}» в избранное!
+
+📊 Всего в избранном: {offer.get('likes', 0) + 1}
+"""
+        
+        send_telegram_message(owner["telegram_id"], text)
+    except Exception as e:
+        print(f"❌ notify_new_favorite error: {e}")
+
+def notify_boost_activated(offer_id, boost_type, expires_at):
+    """Уведомление об активации буста"""
+    try:
+        db = get_db()
+        offer = db.offers.find_one({"id": offer_id})
+        if not offer:
+            return
+        
+        owner = db.users.find_one({"telegram_id": offer.get("user_id")})
+        if not owner:
+            return
+        
+        plan = BOOST_PLANS.get(boost_type, BOOST_PLANS["1day"])
+        exp_date = expires_at.strftime("%d.%m.%Y") if isinstance(expires_at, datetime) else str(expires_at)
+        
+        text = f"""
+⚡ <b>Буст активирован!</b>
+
+Объявление «{offer.get('title')}» теперь продвигается!
+
+📅 Тариф: {plan['name']}
+⏰ Действует до: {exp_date}
+
+Ваше объявление теперь показывается чаще и выше в поиске!
+"""
+        
+        send_telegram_message(owner["telegram_id"], text)
+    except Exception as e:
+        print(f"❌ notify_boost_activated error: {e}")
+
+def notify_boost_expiring(offer_id, hours_left):
+    """Уведомление о скором истечении буста"""
+    try:
+        db = get_db()
+        offer = db.offers.find_one({"id": offer_id})
+        if not offer:
+            return
+        
+        owner = db.users.find_one({"telegram_id": offer.get("user_id")})
+        if not owner or not owner.get("notifications_enabled", True):
+            return
+        
+        text = f"""
+⏰ <b>Буст скоро истечёт!</b>
+
+Буст для «{offer.get('title')}» закончится через {hours_left} ч.
+
+Продлите буст, чтобы не потерять позиции в поиске!
+"""
+        
+        reply_markup = {
+            "inline_keyboard": [[
+                {"text": "🔄 Продлить буст", "callback_data": f"extend_boost_{offer_id}"}
+            ]]
+        }
+        
+        send_telegram_message(owner["telegram_id"], text, reply_markup=reply_markup)
+    except Exception as e:
+        print(f"❌ notify_boost_expiring error: {e}")
 
 BOOST_PLANS = {
     "1day": {"days": 1, "name": "1 День", "price": 350, "currency": "XTR"},
