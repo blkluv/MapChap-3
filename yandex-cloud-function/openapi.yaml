@@ -10,6 +10,7 @@ x-yc-apigateway:
     allowedHeaders: '*'
 
 paths:
+  # ==================== HEALTH & INFO ====================
   /api/health:
     get:
       x-yc-apigateway-integration:
@@ -46,6 +47,7 @@ paths:
         '200':
           description: OK
 
+  # ==================== AUTH ====================
   /api/auth/telegram:
     post:
       x-yc-apigateway-integration:
@@ -65,6 +67,46 @@ paths:
           Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
+  # ==================== VERIFICATION ====================
+  /api/verification/inn:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  /api/verification/manual:
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  # ==================== USERS ====================
   /api/users/{telegram_id}:
     parameters:
       - name: telegram_id
@@ -79,8 +121,91 @@ paths:
       responses:
         '200':
           description: OK
+    put:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
 
+  # ==================== FAVORITES ====================
+  /api/users/{telegram_id}/favorites:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    put:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  # ==================== OFFERS ====================
   /api/offers:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  /api/offers/user/{telegram_id}:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
@@ -99,6 +224,132 @@ paths:
           Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
 
+  /api/offers/{offer_id}:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    put:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    delete:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  /api/offers/{offer_id}/boost:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  # ==================== ANALYTICS ====================
+  /api/analytics/dashboard/{telegram_id}:
+    parameters:
+      - name: telegram_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  /api/analytics/offer/{offer_id}:
+    parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
+
+  # ==================== BOOSTS ====================
+  /api/boosts/plans:
+    get:
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: d4ekri024dh40qmoh0m5
+      responses:
+        '200':
+          description: OK
+
+  # ==================== ARTICLES ====================
   /api/articles:
     get:
       x-yc-apigateway-integration:
@@ -108,11 +359,22 @@ paths:
         '200':
           description: OK
 
-  /api/boosts/plans:
-    get:
+  # ==================== TELEGRAM WEBHOOK ====================
+  /api/telegram/webhook:
+    post:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
       responses:
         '200':
           description: OK
+    options:
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: '*'
+          Access-Control-Allow-Headers: '*'
