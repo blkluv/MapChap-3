@@ -30,7 +30,7 @@
 
 ## URL
 - **Yandex Cloud**: https://d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
-- **Emergent**: https://backend-fix-34.preview.emergentagent.com
+- **Emergent**: https://process-steps-2.preview.emergentagent.com
 
 ## Конфигурация
 - Folder ID: b1gfh042gbr60ukjqqi0

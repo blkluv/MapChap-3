@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 class AnalyticsAPITester:
-    def __init__(self, base_url: str = "https://backend-fix-34.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://process-steps-2.preview.emergentagent.com"):
         self.base_url = base_url
         self.test_telegram_id = 111222333  # From test credentials
         self.tests_run = 0
