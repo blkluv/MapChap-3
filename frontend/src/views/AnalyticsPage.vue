@@ -267,11 +267,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import api from '@/services/api'
+import { useAuthStore } from '@/stores/authStore'
+import { apiService } from '@/services/api'
 
 const router = useRouter()
-const userStore = useUserStore()
+const authStore = useAuthStore()
 
 const loading = ref(true)
 const dashboard = ref(null)
