@@ -838,10 +838,9 @@ export default {
             offerForm.address = result.verification.address
           }
           
-          // Переходим к созданию объявления через 1 секунду
-          setTimeout(() => {
-            goToCreateOffer()
-          }, 1000)
+          // Переходим к созданию объявления сразу
+          justBecameBusiness.value = true
+          currentStep.value = 'create-offer'
         }
       } catch (e) {
         innVerificationResult.value = { success: false, error: e.message || 'Ошибка проверки ИНН' }
