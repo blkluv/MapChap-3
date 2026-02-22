@@ -19,7 +19,7 @@ paths:
         '200':
           description: OK
 
-  /api/debug:
+  /api/db-test:
     get:
       x-yc-apigateway-integration:
         type: cloud_functions
@@ -76,66 +76,9 @@ paths:
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: d4ekri024dh40qmoh0m5
-        context:
-          telegram_id: '{telegram_id}'
       responses:
         '200':
           description: OK
-    put:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-        context:
-          telegram_id: '{telegram_id}'
-      responses:
-        '200':
-          description: OK
-    options:
-      x-yc-apigateway-integration:
-        type: dummy
-        content:
-          '*': ''
-        http_code: 200
-        http_headers:
-          Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: '*'
-          Access-Control-Allow-Headers: '*'
-
-  /api/users/{telegram_id}/favorites:
-    parameters:
-      - name: telegram_id
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-        context:
-          telegram_id: '{telegram_id}'
-      responses:
-        '200':
-          description: OK
-    put:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-        context:
-          telegram_id: '{telegram_id}'
-      responses:
-        '200':
-          description: OK
-    options:
-      x-yc-apigateway-integration:
-        type: dummy
-        content:
-          '*': ''
-        http_code: 200
-        http_headers:
-          Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: '*'
-          Access-Control-Allow-Headers: '*'
 
   /api/offers:
     get:
@@ -145,13 +88,6 @@ paths:
       responses:
         '200':
           description: OK
-    post:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-      responses:
-        '200':
-          description: OK
     options:
       x-yc-apigateway-integration:
         type: dummy
@@ -162,40 +98,6 @@ paths:
           Access-Control-Allow-Origin: '*'
           Access-Control-Allow-Methods: '*'
           Access-Control-Allow-Headers: '*'
-
-  /api/offers/{offer_id}:
-    parameters:
-      - name: offer_id
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-        context:
-          offer_id: '{offer_id}'
-      responses:
-        '200':
-          description: OK
-
-  /api/offers/user/{telegram_id}:
-    parameters:
-      - name: telegram_id
-        in: path
-        required: true
-        schema:
-          type: string
-    get:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-        context:
-          telegram_id: '{telegram_id}'
-      responses:
-        '200':
-          description: OK
 
   /api/articles:
     get:
@@ -214,41 +116,3 @@ paths:
       responses:
         '200':
           description: OK
-
-  /api/verification/inn:
-    post:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-      responses:
-        '200':
-          description: OK
-    options:
-      x-yc-apigateway-integration:
-        type: dummy
-        content:
-          '*': ''
-        http_code: 200
-        http_headers:
-          Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: '*'
-          Access-Control-Allow-Headers: '*'
-
-  /api/verification/manual:
-    post:
-      x-yc-apigateway-integration:
-        type: cloud_functions
-        function_id: d4ekri024dh40qmoh0m5
-      responses:
-        '200':
-          description: OK
-    options:
-      x-yc-apigateway-integration:
-        type: dummy
-        content:
-          '*': ''
-        http_code: 200
-        http_headers:
-          Access-Control-Allow-Origin: '*'
-          Access-Control-Allow-Methods: '*'
-          Access-Control-Allow-Headers: '*'
