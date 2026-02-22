@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ProfilePage from '../views/ProfilePage.vue'
-import AnalyticsPage from '../views/AnalyticsPage.vue'
 
 const routes = [
   {
@@ -18,7 +17,7 @@ const routes = [
   {
     path: '/analytics',
     name: 'Analytics',
-    component: AnalyticsPage,
+    component: () => import('../views/AnalyticsPage.vue'),
     meta: {
       requiresAuth: true
     }
