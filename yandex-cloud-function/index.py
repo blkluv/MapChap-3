@@ -116,7 +116,7 @@ def notify_new_view(offer_id, viewer_telegram_id=None):
         # Кнопка для открытия аналитики
         reply_markup = {
             "inline_keyboard": [[
-                {"text": "📊 Аналитика", "web_app": {"url": f"https://storage.yandexcloud.net/mapchap-frontend/index.html/analytics"}},
+                {"text": "📊 Аналитика", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/#/analytics"}},
                 {"text": "⚡ Буст", "callback_data": f"boost_{offer_id}"}
             ]]
         }
