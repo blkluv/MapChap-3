@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
       const cached = localStorage.getItem('mapchap_user')
       if (cached) {
         const cachedUser = JSON.parse(cached)
-        if (cachedUser?.telegram_id) {
+        if (cachedUser?.telegram_id && cachedUser.telegram_id !== 123456789) {
           user.value = cachedUser
           console.log('📦 Loaded user from cache:', cachedUser.first_name)
           // Пытаемся обновить данные с сервера в фоне
@@ -65,9 +65,9 @@ export const useAuthStore = defineStore('auth', () => {
           }
         } catch (error) {
           console.error('❌ Auth error:', error)
-          // Заглушка для разработки
+          // Создаём реального пользователя по данным Telegram
           user.value = {
-            id: String(Date.now()),
+            id: String(initData.id),
             telegram_id: initData.id,
             first_name: initData.first_name,
             last_name: initData.last_name || '',
@@ -79,12 +79,16 @@ export const useAuthStore = defineStore('auth', () => {
             favorites: [],
             notifications_enabled: true
           }
+          // Сохраняем
+          try {
+            localStorage.setItem('mapchap_user', JSON.stringify(user.value))
+          } catch (e) {}
         } finally {
           isLoading.value = false
         }
       } else {
         console.log('⚠️ No Telegram user data, using demo mode')
-        // Демо-режим для тестирования
+        // Демо-режим для тестирования (только если нет данных Telegram)
         user.value = {
           id: 'demo-user',
           telegram_id: 123456789,
@@ -100,7 +104,20 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
     } else {
-      console.log('⚠️ Not in Telegram, using demo mode')
+      console.log('⚠️ Not in Telegram WebApp context')
+      // Пробуем загрузить из localStorage (мог войти ранее)
+      try {
+        const cached = localStorage.getItem('mapchap_user')
+        if (cached) {
+          const cachedUser = JSON.parse(cached)
+          if (cachedUser?.telegram_id && cachedUser.telegram_id !== 123456789) {
+            user.value = cachedUser
+            console.log('📦 Restored session from cache:', cachedUser.first_name)
+            return
+          }
+        }
+      } catch (e) {}
+      
       // Демо-режим для разработки вне Telegram
       user.value = {
         id: 'demo-user',
