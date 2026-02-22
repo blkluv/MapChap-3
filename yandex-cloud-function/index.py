@@ -305,17 +305,32 @@ def handle_create_offer(event, context):
         if user.get('role') != 'business_owner':
             return json_response({"error": "Only business owners can create offers"}, 403)
         
+        # Координаты могут прийти как [lat, lng] или как объект
         coords = body.get('coordinates', [55.75, 37.62])
+        if isinstance(coords, list) and len(coords) >= 2:
+            lat, lng = coords[0], coords[1]
+        else:
+            lat, lng = 55.75, 37.62
+        
+        # Дополнительные поля
+        full_description = body.get('full_description', '')
+        email = body.get('email', '')
+        website = body.get('website', '')
+        working_hours = body.get('working_hours', '')
         
         offer = {
             "id": str(uuid.uuid4()),
             "user_id": telegram_id,
             "title": body.get('title'),
             "description": body.get('description'),
+            "full_description": full_description,
             "category": body.get('category'),
             "address": body.get('address'),
             "phone": body.get('phone'),
-            "coordinates": {"type": "Point", "coordinates": [coords[1], coords[0]]},
+            "email": email,
+            "website": website,
+            "working_hours": working_hours,
+            "coordinates": [lat, lng],  # Храним как простой массив [lat, lng]
             "images": body.get('images', []),
             "tags": body.get('tags', []),
             "amenities": body.get('amenities', []),
