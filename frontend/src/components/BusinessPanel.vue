@@ -867,10 +867,9 @@ export default {
           
           showNotification('Бизнес-аккаунт активирован!', 'success')
           
-          // Переходим к созданию объявления через 1 секунду
-          setTimeout(() => {
-            goToCreateOffer()
-          }, 1000)
+          // Переходим к созданию объявления сразу
+          justBecameBusiness.value = true
+          currentStep.value = 'create-offer'
         }
       } catch (e) { 
         showNotification(e.message || 'Ошибка', 'error') 
