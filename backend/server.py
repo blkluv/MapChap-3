@@ -112,8 +112,8 @@ class BusinessVerificationINN(BaseModel):
 class BusinessVerificationManual(BaseModel):
     phone: str
     email: str
-    social_username: str  # Instagram or Telegram
-    social_type: str  # "instagram" or "telegram"
+    social_username: Optional[str] = ""  # Instagram or Telegram
+    social_type: Optional[str] = "telegram"  # "instagram" or "telegram"
     company_name: str
 
 class OfferCreate(BaseModel):
