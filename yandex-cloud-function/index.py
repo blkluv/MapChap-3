@@ -918,7 +918,7 @@ def handle_telegram_webhook(event, context):
 """
                     reply_markup = {
                         "inline_keyboard": [[
-                            {"text": "📊 Аналитика", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/index.html/analytics"}}
+                            {"text": "📊 Аналитика", "web_app": {"url": "https://storage.yandexcloud.net/mapchap-frontend/#/analytics"}}
                         ]]
                     }
                     send_telegram_message(chat_id, stats_text, reply_markup=reply_markup)
