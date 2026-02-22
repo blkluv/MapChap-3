@@ -6,85 +6,75 @@
 MapChap - платформа для размещения бизнес-объявлений на интерактивной карте, интегрированная с Telegram как Mini App.
 
 ## Технический стек
-- **Frontend**: Vue.js 3, Vite, Pinia, Яндекс Карты
+- **Frontend**: Vue.js 3, Vite, Pinia, Vue Router, Яндекс Карты
 - **Backend**: FastAPI (Python), Motor (async MongoDB)
-- **База данных**: MongoDB
-- **Хостинг**: 
-  - Emergent Platform (основной, рабочий)
-  - Яндекс Облако (в процессе настройки)
+- **База данных**: MongoDB (Local + Yandex Managed MongoDB)
 
 ## Что реализовано
 
-### Backend API (100% работает на Emergent)
+### Backend API (100% работает)
 - ✅ Аутентификация через Telegram
 - ✅ CRUD операции для пользователей
 - ✅ CRUD операции для объявлений (offers)
-- ✅ Верификация бизнеса через ИНН (DaData API)
-- ✅ Верификация бизнеса вручную
+- ✅ Верификация бизнеса (ИНН + Manual)
 - ✅ Избранное
 - ✅ Категории (13 категорий)
-- ✅ Статьи/Блог
 - ✅ Бусты (монетизация через Telegram Stars)
-- ✅ Геолокация и уведомления
-- ✅ Telegram Bot Webhook
+- ✅ **АНАЛИТИКА ДЛЯ БИЗНЕСА** (НОВОЕ)
+
+### Аналитика (НОВОЕ)
+- ✅ **Dashboard** - общая статистика по всем объявлениям
+  - Всего просмотров, уникальных посетителей
+  - Тренд по сравнению с прошлым периодом
+  - Топ-объявления и требующие внимания
+  - График просмотров по дням
+- ✅ **Детальная аналитика по объявлению**
+  - Просмотры по дням и часам
+  - Пиковое время активности
+  - Конверсия в избранное
+  - Статус буста
+- ✅ **Умные рекомендации**
+  - Когда купить буст
+  - Когда обновить контент
+  - Оповещения о снижении интереса
 
 ### Frontend (100% работает)
 - ✅ Интерактивная карта Яндекс
 - ✅ Фильтрация по категориям
-- ✅ Поиск мест
 - ✅ Профиль пользователя
-- ✅ Бизнес-панель
-- ✅ Создание объявлений
-- ✅ Telegram Web App интеграция
+- ✅ Бизнес-панель с кнопкой "Аналитика"
+- ✅ Страница аналитики /analytics
 
 ### Яндекс Облако (частично настроено)
-- ✅ Cloud Function создана (mapchap-backendv3)
+- ✅ Cloud Function создана
 - ✅ API Gateway настроен
 - ✅ Managed MongoDB создан
-- ⚠️ Проблема: Cloud Function не может подключиться к MongoDB
-  - Причина: Сетевая изоляция, требуется дополнительная настройка VPC
-  - Решение: Настроить Security Groups или использовать Serverless Connector
+- ✅ Security Group создана
+- ⚠️ Cloud Function не подключается к MongoDB (требуется Serverless Connector)
 
-## Конфигурация Яндекс Облака
+## API Endpoints аналитики
 
-### Ресурсы
-- **Folder ID**: b1gfh042gbr60ukjqqi0
-- **Network ID**: enpja6k6tvpqjon21urk
-- **Function ID**: d4ekri024dh40qmoh0m5
-- **API Gateway ID**: d5djdb4t6ohnfrpfaaic
-- **API Gateway Domain**: d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
-- **MongoDB Cluster ID**: c9q57kp6i9hmo0gbi3p3
-- **MongoDB Host**: rc1a-7036pnpkejfpk6to.mdb.yandexcloud.net:27018
+```
+GET /api/analytics/dashboard/{telegram_id}?period=7d|30d|90d
+GET /api/analytics/offer/{offer_id}?telegram_id={id}&period=7d|30d|90d
+GET /api/analytics/compare/{telegram_id}?offer_ids=id1,id2,id3
+```
 
-### Учётные данные MongoDB
-- User: mapchap_user
-- Password: MapChap2024Secure!
-- Database: mapchap
-
-## Что нужно сделать для Яндекс Облака
-
-### P0 - Критично
-1. Настроить Security Groups для доступа Cloud Function → MongoDB
-2. Или использовать Serverless Connector для подключения к VPC
-
-### P1 - Важно
-1. Настроить webhook для Telegram бота на Yandex Cloud endpoint
-2. Тестирование полного flow в продакшене
-
-### P2 - Желательно
-1. Настроить мониторинг и логирование
-2. CI/CD для автоматического деплоя
+## Конфигурация Yandex Cloud
+- Folder ID: b1gfh042gbr60ukjqqi0
+- Function ID: d4ekri024dh40qmoh0m5
+- MongoDB Cluster: c9q57kp6i9hmo0gbi3p3
+- Security Group: enphdkq66kg4elgf9dvf
 
 ## Бэклог
 
-### Функционал
-- [ ] Отзывы и рейтинги
-- [ ] Push-уведомления о новых местах рядом
-- [ ] Интеграция с картами для навигации
-- [ ] Аналитика для бизнеса
-- [ ] Подписки и продвижение
+### P0 - Критично
+- [ ] Настроить Serverless Connector для MongoDB в Yandex Cloud
 
-### Технический долг
-- [ ] Исправить подключение Cloud Function к MongoDB
-- [ ] Добавить кэширование
-- [ ] Оптимизация запросов к БД
+### P1 - Важно
+- [ ] Добавить отзывы и рейтинги
+- [ ] Push-уведомления о новых местах
+
+### P2 - Желательно
+- [ ] Экспорт аналитики в PDF
+- [ ] Сравнение периодов
