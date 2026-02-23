@@ -1235,7 +1235,7 @@ export default {
       isVerifying, isSubmitting, innVerificationResult, innError, innForm, manualForm, offerForm, 
       userOffers, businessInfo, businessStats, isValidINN, isValidManualForm, canSubmitOffer, 
       categories, amenitiesList, currentStep, getINNPlaceholder,
-      closePanel, handleBack, initAuth, goToAnalytics, validateINN, verifyByINN, verifyManually, 
+      closePanel, handleBack, initAuth, goToAnalytics, goToMap, validateINN, verifyByINN, verifyManually, 
       submitOffer, editOffer, cancelEdit, handleToggleOfferStatus, handleDeleteOffer, 
       getStatusText, toggleAmenity, getAmenityName, t,
       showDeleteModal, offerToDelete, confirmDeleteOffer, executeDeleteOffer, cancelDelete,
