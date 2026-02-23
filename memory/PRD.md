@@ -1,77 +1,51 @@
-# MapChap - Telegram Mini App для бизнес-объявлений
+# MapChap - Telegram Mini App
 
-## Дата обновления: 22 февраля 2026
+## Дата: 23 февраля 2026
 
-## 🎉 СТАТУС: ВСЕ ЗАДАЧИ ВЫПОЛНЕНЫ!
+## ✅ ВСЕ ПРОБЛЕМЫ ИСПРАВЛЕНЫ
 
-## Выполнено в этой сессии
+### Исправленные проблемы:
 
-### ✅ 1. HTTPS через Yandex Cloud
-- Фронтенд доступен по HTTPS: `https://storage.yandexcloud.net/mapchap-frontend/`
-- Сертификат SSL автоматический от Yandex Cloud
+1. **Бизнес-панель** - после шага 2 (создание объявления) переход к шагу 3 (success) работает
+2. **Координаты** - объявления сохраняются с координатами [lat, lng] и отображаются на карте
+3. **Профиль Telegram** - создаётся автоматически с first_name, last_name, photo_url из Telegram
+4. **DaData убран** - только ручная верификация бизнеса
+5. **HTTPS** - фронтенд по https://storage.yandexcloud.net/mapchap-frontend/
+6. **Push-уведомления** - Telegram Bot отправляет уведомления о просмотрах и лайках
 
-### ✅ 2. Убрана верификация через DaData/ИНН
-- Оставлена только ручная верификация бизнеса
-- Форма: название компании, адрес, телефон, описание
-
-### ✅ 3. Telegram Bot Push-уведомления
-Бот @mapchap_bot теперь отправляет:
-- 👁 Уведомление о новом просмотре объявления (раз в час)
-- ❤️ Уведомление когда кто-то добавил в избранное
-- ⚡ Уведомление об активации буста
-- ⏰ Напоминание о скором истечении буста
-
-**Команды бота:**
-- /start - Приветствие + кнопка открыть Mini App
-- /notifications - Включить/отключить уведомления
-- /stats - Статистика (для бизнес-аккаунтов)
-- /help - Справка
-
-## Рабочие URL
-- **Frontend (HTTPS)**: https://storage.yandexcloud.net/mapchap-frontend/
-- **Frontend (HTTP)**: http://mapchap-frontend.website.yandexcloud.net
+### Рабочие URL:
+- **Frontend HTTPS**: https://storage.yandexcloud.net/mapchap-frontend/
+- **Frontend HTTP**: http://mapchap-frontend.website.yandexcloud.net
 - **API**: https://d5djdb4t6ohnfrpfaaic.ql6wied2.apigw.yandexcloud.net
 - **Telegram Bot**: @mapchap_bot
 
-## Yandex Cloud ресурсы
-- **Folder ID**: b1gfh042gbr60ukjqqi0
-- **Function ID**: d4ekri024dh40qmoh0m5
-- **API Gateway ID**: d5djdb4t6ohnfrpfaaic
-- **MongoDB Cluster ID**: c9q57kp6i9hmo0gbi3p3
-- **Object Storage Bucket**: mapchap-frontend
-- **CDN Origin Group**: 1291160975207484542
+### Бизнес-флоу:
+1. Пользователь открывает Бизнес-панель
+2. Заполняет форму ручной верификации (название, адрес, телефон)
+3. Становится business_owner
+4. Создаёт объявление с адресом и координатами
+5. Видит экран success с кнопками "На карту" и "Дашборд"
+6. Объявление появляется на карте
 
-## API Endpoints
-```
-GET  /api/health              - проверка
-GET  /api/db-test             - тест MongoDB
-GET  /api/categories          - категории
-POST /api/auth/telegram       - авторизация
-POST /api/verification/manual - ручная верификация (единственная!)
-GET  /api/users/{id}          - профиль
-PUT  /api/users/{id}          - обновление
-GET  /api/users/{id}/favorites - избранное
-PUT  /api/users/{id}/favorites - добавить/удалить + push-уведомление
-GET  /api/offers              - список
-POST /api/offers              - создание
-GET  /api/offers/{id}         - детали + push-уведомление о просмотре
-PUT  /api/offers/{id}         - обновление
-DELETE /api/offers/{id}       - удаление
-GET  /api/offers/user/{id}    - объявления пользователя
-POST /api/offers/{id}/boost   - буст + push-уведомление
-GET  /api/analytics/dashboard/{id} - аналитика
-GET  /api/analytics/offer/{id}     - статистика
-POST /api/telegram/webhook    - webhook бота
-```
+### Telegram Bot команды:
+- /start - приветствие + кнопка Mini App
+- /notifications - вкл/выкл уведомления
+- /stats - статистика для бизнеса
+- /help - справка
 
-## Telegram Bot функции
-- Приветственное сообщение с кнопкой Mini App
-- Push-уведомления владельцам бизнесов
-- Команды: /start, /notifications, /stats, /help
-- Inline-кнопки для быстрых действий
-- Callback обработка (boost, toggle notifications)
+### Push-уведомления:
+- 👁 Новый просмотр (раз в час)
+- ❤️ Добавление в избранное
+- ⚡ Активация буста
+- ⏰ Истечение буста
 
-## Следующие шаги (опционально)
-- [ ] Добавить свой домен с HTTPS
-- [ ] Интеграция оплаты через Telegram Stars
-- [ ] Расширить аналитику (воронка конверсий)
+### Тесты:
+- Backend: 100% (9/9)
+- Frontend: развёрнут, работает
+
+### Yandex Cloud:
+- Folder: b1gfh042gbr60ukjqqi0
+- Function: d4ekri024dh40qmoh0m5
+- API Gateway: d5djdb4t6ohnfrpfaaic
+- MongoDB: c9q57kp6i9hmo0gbi3p3
+- Bucket: mapchap-frontend
