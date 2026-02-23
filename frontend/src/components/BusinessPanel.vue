@@ -751,8 +751,15 @@ export default {
       router.push('/analytics')
     }
     
+    const goToMap = () => {
+      closePanel()
+      router.push('/')
+    }
+    
     const handleBack = () => {
       if (currentStep.value === 'create-offer') {
+        currentStep.value = 'dashboard'
+      } else if (currentStep.value === 'success') {
         currentStep.value = 'dashboard'
       } else {
         closePanel()
