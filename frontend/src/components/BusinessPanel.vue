@@ -830,18 +830,38 @@ export default {
       
       isSubmitting.value = true
       try {
+        // Геокодируем адрес через Yandex Geocoder
+        let coordinates = [offerForm.lat, offerForm.lng]
+        
+        if (offerForm.address && window.ymaps) {
+          try {
+            const result = await window.ymaps.geocode(offerForm.address, { results: 1 })
+            const geoObject = result.geoObjects.get(0)
+            if (geoObject) {
+              const coords = geoObject.geometry.getCoordinates()
+              coordinates = coords
+              console.log('📍 Geocoded:', offerForm.address, '->', coords)
+            }
+          } catch (e) {
+            console.log('⚠️ Geocoding failed, using default')
+          }
+        }
+        
         const data = { 
           ...offerForm, 
-          coordinates: [offerForm.lat, offerForm.lng],
+          coordinates: coordinates,
+          lat: coordinates[0],
+          lng: coordinates[1],
           inn: authStore.user?.inn || null
         }
         
+        let newOffer = null
         if (editingOffer.value) {
           await businessStore.updateOffer(editingOffer.value.id, data)
           showNotification('Объявление обновлено', 'success')
         } else {
-          await businessStore.createOffer(data)
-          showNotification('Объявление опубликовано!', 'success')
+          newOffer = await businessStore.createOffer(data)
+          showNotification('🎉 Объявление опубликовано!', 'success')
         }
         
         // Обновляем глобальный список офферов для карты
@@ -850,10 +870,18 @@ export default {
         await businessStore.loadUserOffers()
         
         resetForm()
-        currentStep.value = 'dashboard'
-        activeTab.value = 'offers'
+        
+        // Если это было первое объявление - показываем шаг "Готово"
+        if (justBecameBusiness.value && newOffer) {
+          currentStep.value = 'success'
+          justBecameBusiness.value = false
+        } else {
+          currentStep.value = 'dashboard'
+          activeTab.value = 'offers'
+        }
       } catch (e) { 
-        showNotification(e.message || 'Ошибка', 'error') 
+        console.error('Submit error:', e)
+        showNotification(e.message || 'Ошибка создания объявления', 'error') 
       } finally {
         isSubmitting.value = false
       }
