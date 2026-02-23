@@ -2011,4 +2011,88 @@ export default {
 .modal-footer .btn {
   flex: 1;
 }
+
+/* Success Section Styles */
+.success-section {
+  padding: 20px 0;
+}
+
+.success-card {
+  background: linear-gradient(135deg, #0a1a0a 0%, #001a00 100%);
+  border: 1px solid #0f3;
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.success-icon-large {
+  width: 80px;
+  height: 80px;
+  background: rgba(0, 255, 51, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.success-icon-large svg {
+  stroke: #0f3;
+}
+
+.success-card h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.success-card p {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 24px;
+}
+
+.success-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+  text-align: left;
+  padding: 0 20px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+}
+
+.info-icon {
+  font-size: 20px;
+}
+
+.info-item span:last-child {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.success-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.success-actions .btn {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
 </style>
