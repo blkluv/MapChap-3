@@ -274,6 +274,69 @@
         </div>
       </div>
 
+      <!-- Шаг 3: Успешное создание объявления -->
+      <div v-else-if="currentStep === 'success'" class="success-section">
+        <!-- Индикатор шагов -->
+        <div class="steps-indicator">
+          <div class="step completed">
+            <span class="step-num">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="step-label">{{ t('business_step1') }}</span>
+          </div>
+          <div class="step-line active"></div>
+          <div class="step completed">
+            <span class="step-num">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="step-label">{{ t('business_step2') }}</span>
+          </div>
+          <div class="step-line active"></div>
+          <div class="step completed">
+            <span class="step-num">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <span class="step-label">{{ t('business_step_done') }}</span>
+          </div>
+        </div>
+
+        <div class="success-card">
+          <div class="success-icon-large">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h2>🎉 {{ t('business_success_title') }}</h2>
+          <p>{{ t('business_success_desc') }}</p>
+          
+          <div class="success-info">
+            <div class="info-item">
+              <span class="info-icon">🗺️</span>
+              <span>{{ t('business_success_map') }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">📊</span>
+              <span>{{ t('business_success_analytics') }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-icon">🔔</span>
+              <span>{{ t('business_success_notifications') }}</span>
+            </div>
+          </div>
+
+          <div class="success-actions">
+            <button class="btn btn-secondary" @click="goToMap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              {{ t('business_view_on_map') }}
+            </button>
+            <button class="btn btn-primary" @click="currentStep = 'dashboard'">
+              {{ t('business_go_to_dashboard') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Бизнес дашборд -->
       <div v-else-if="currentStep === 'dashboard'" class="business-content">
         <!-- Индикатор загрузки -->
