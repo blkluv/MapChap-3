@@ -1,23 +1,23 @@
 <template>
   <div class="map-wrapper">
     <div id="yandex-map" ref="mapContainer" class="yandex-map"></div>
-    
-    <!-- Кастомные контролы зума -->
+
+    <!-- Custom zoom controls -->
     <div class="custom-controls">
-      <button class="control-btn zoom-in" @click="zoomIn" title="Приблизить">
+      <button class="control-btn zoom-in" @click="zoomIn" title="Zoom in">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
       </button>
-      <button class="control-btn zoom-out" @click="zoomOut" title="Отдалить">
+      <button class="control-btn zoom-out" @click="zoomOut" title="Zoom out">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
       </button>
     </div>
-    
-    <!-- Индикатор GPS трекинга -->
+
+    <!-- GPS tracking indicator -->
     <div v-if="isTracking" class="tracking-indicator">
       <span class="tracking-dot"></span>
       <span class="tracking-text">GPS</span>
@@ -30,7 +30,7 @@ import { onMounted, ref, onUnmounted, watch } from 'vue'
 import { useOffersStore } from '../stores/offersStore.js'
 import { storeToRefs } from 'pinia'
 
-// Иконки категорий
+// Category icons
 const CATEGORY_ICONS = {
   food: { color: '#888', preset: 'islands#grayFoodIcon' },
   shopping: { color: '#888', preset: 'islands#grayShoppingCartIcon' },
@@ -55,13 +55,13 @@ export default {
     const mapContainer = ref(null)
     const offersStore = useOffersStore()
     const { filteredOffers, selectedCategory, userLocation } = storeToRefs(offersStore)
-    
+
     let map = null
     let ymaps = null
     let clusterer = null
     let userMarker = null
     let watchId = null
-    let isFirstLocation = true // Флаг для первого получения локации
+    let isFirstLocation = true // Flag for first location acquisition
     const isTracking = ref(false)
     const currentHeading = ref(0)
 
@@ -77,11 +77,11 @@ export default {
         if (!mapContainer.value) return
 
         try {
-          // Инициализация карты БЕЗ стандартных контролов
+          // Initialize map WITHOUT standard controls
           map = new ymaps.Map(mapContainer.value, {
-            center: [55.751244, 37.618423],
+            center: [33.755229, -84.371132],
             zoom: 12,
-            controls: [] // Убираем ВСЕ контролы
+            controls: [] // Remove ALL controls
           }, {
             suppressMapOpenBlock: true,
             yandexMapDisablePoiInteractivity: true,
@@ -90,15 +90,15 @@ export default {
             copyrightProvidersVisible: false
           })
 
-          // Отключаем все поведения которые мешают
-          map.behaviors.disable('scrollZoom') // Можно включить если нужно
+          // Disable all interfering behaviors
+          map.behaviors.disable('scrollZoom') // Can enable if needed
           map.behaviors.enable('drag')
           map.behaviors.enable('multiTouch')
-          
-          // Включаем зум жестами
+
+          // Enable gesture zoom
           map.behaviors.enable('scrollZoom')
 
-          // Кластеризатор с белым стилем
+          // Clusterer with white style
           clusterer = new ymaps.Clusterer({
             preset: 'islands#invertedGrayClusterIcons',
             clusterDisableClickZoom: false,
@@ -136,8 +136,8 @@ export default {
       }
     }
 
-    // Отслеживание позиции БЕЗ автоматического центрирования
-    // Карта НЕ центрируется автоматически - только по кнопке геолокации
+    // Position tracking WITHOUT automatic centering
+    // Map does NOT center automatically - only by geolocation button
     const startLocationTracking = () => {
       if (!navigator.geolocation) return
 
@@ -151,12 +151,12 @@ export default {
             heading: position.coords.heading || 0,
             speed: position.coords.speed || 0
           }
-          
+
           currentHeading.value = newLocation.heading
-          // Только обновляем маркер, НЕ центрируем карту
+          // Only update marker, do NOT center map
           updateUserMarker(newLocation, false)
-          
-          // Сохраняем локацию в store для кнопки
+
+          // Save location to store for button
           offersStore.setUserLocation(newLocation)
         },
         (error) => {
@@ -181,7 +181,7 @@ export default {
 
     const createCustomPlacemark = (offer) => {
       const categoryIcon = CATEGORY_ICONS[offer.category] || CATEGORY_ICONS.default
-      
+
       let coords
       if (offer.coordinates) {
         if (Array.isArray(offer.coordinates)) {
@@ -190,7 +190,7 @@ export default {
           coords = [offer.coordinates.coordinates[1], offer.coordinates.coordinates[0]]
         }
       }
-      
+
       if (!coords) return null
 
       const placemark = new ymaps.Placemark(
@@ -227,10 +227,10 @@ export default {
       clusterer.add(placemarks)
     }
 
-    // Чёрно-белый маркер пользователя
+    // Black and white user marker
     const createUserMarkerLayout = (heading = 0) => {
       if (!ymaps) return null
-      
+
       return ymaps.templateLayoutFactory.createClass(`
         <div class="user-marker-container">
           <div class="user-marker-accuracy"></div>
@@ -250,7 +250,7 @@ export default {
       const heading = location.heading || currentHeading.value || 0
 
       if (userMarker) {
-        // Просто обновляем позицию маркера без анимации центрирования
+        // Just update marker position without centering animation
         userMarker.geometry.setCoordinates(coords)
         const UserMarkerLayout = createUserMarkerLayout(heading)
         userMarker.options.set('iconLayout', UserMarkerLayout)
@@ -259,7 +259,7 @@ export default {
 
         userMarker = new ymaps.Placemark(
           coords,
-          { hintContent: 'Вы здесь' },
+          { hintContent: 'You are here' },
           {
             iconLayout: UserMarkerLayout,
             iconShape: { type: 'Circle', coordinates: [0, 0], radius: 40 }
@@ -272,24 +272,24 @@ export default {
       offersStore.setUserLocation(location)
     }
 
-    // Ручное центрирование при нажатии на кнопку локации
+    // Manual centering when location button is pressed
     const setUserMarker = (location) => {
       if (!location || !map) return
-      
+
       const lat = location.latitude || location[0]
       const lng = location.longitude || location[1]
-      
+
       updateUserMarker({
         latitude: lat,
         longitude: lng,
         accuracy: location.accuracy || 100
       })
-      
-      // Центрируем только при РУЧНОМ запросе (кнопка)
+
+      // Center only on MANUAL request (button)
       map.setCenter([lat, lng], 15, { duration: 400 })
     }
 
-    // Центрирование на текущей позиции пользователя (для внешней кнопки)
+    // Center on current user position (for external button)
     const centerOnUser = () => {
       const location = userLocation.value
       if (location && map) {
@@ -301,15 +301,15 @@ export default {
 
     watch(filteredOffers, () => updateMarkers(), { deep: true })
 
-    // Убрали автоматическое центрирование при обновлении локации
-    // Центрирование только по кнопке через setUserMarker
+    // Removed automatic centering on location update
+    // Centering only by button via setUserMarker
 
     onMounted(() => {
       const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY || '07b74146-5f5a-46bf-a2b1-cf6d052a41bb'
-      
+
       if (!window.ymaps) {
         const script = document.createElement('script')
-        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=ru_RU`
+        script.src = `https://api-maps.yandex.ru/2.1/?apikey=${apiKey}&lang=en_US`
         script.onload = () => setTimeout(initMap, 300)
         document.head.appendChild(script)
       } else {
@@ -338,11 +338,11 @@ export default {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* Тёмная тема через инверсию */
+  /* Dark theme via inversion */
   filter: invert(90%) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
-/* Кастомные контролы зума - чёрно-белые */
+/* Custom zoom controls - black and white */
 .custom-controls {
   position: absolute;
   right: 16px;
@@ -377,7 +377,7 @@ export default {
   transform: scale(0.95);
 }
 
-/* Индикатор GPS - чёрно-белый */
+/* GPS indicator - black and white */
 .tracking-indicator {
   position: absolute;
   top: 180px;
@@ -412,13 +412,13 @@ export default {
   50% { opacity: 0.3; }
 }
 
-/* Чёрно-белый маркер пользователя */
+/* Black and white user marker */
 :deep(.user-marker-container) {
   position: relative;
   width: 80px;
   height: 80px;
   transform: translate(-50%, -50%);
-  /* Отменяем инверсию для маркера */
+  /* Cancel inversion for marker */
   filter: invert(90%) hue-rotate(180deg) brightness(1.05) contrast(1.1);
 }
 
@@ -495,7 +495,7 @@ export default {
   }
 }
 
-/* Полное скрытие элементов Яндекса */
+/* Completely hide Yandex elements */
 :deep(.ymaps-2-1-79-copyright),
 :deep(.ymaps-2-1-79-copyright__wrap),
 :deep(.ymaps-2-1-79-map-copyrights-promo),
@@ -512,7 +512,7 @@ export default {
   opacity: 0 !important;
 }
 
-/* Скрытие ссылок на Яндекс */
+/* Hide Yandex links */
 :deep(a[href*="yandex"]),
 :deep(a[href*="maps.yandex"]) {
   display: none !important;

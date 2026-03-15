@@ -8,7 +8,7 @@ export class YandexMapsService {
     this.clusterer = null
   }
 
-  // Инициализация карты
+  // Initialize map
   init(containerId, options = {}) {
     return new Promise((resolve, reject) => {
       if (this.isLoaded && this.ymaps) {
@@ -16,7 +16,7 @@ export class YandexMapsService {
         return
       }
 
-      // Ждем загрузку API Яндекс.Карт
+      // Wait for Yandex Maps API to load
       if (window.ymaps) {
         window.ymaps.ready(() => {
           this.ymaps = window.ymaps
@@ -29,12 +29,12 @@ export class YandexMapsService {
     })
   }
 
-  // Создание карты
+  // Create map
   createMap(containerId, options) {
     return new Promise((resolve, reject) => {
       try {
         const defaultOptions = {
-          center: [55.7558, 37.6173], // Москва по умолчанию
+          center: [33.755229, -84.371132], // Default center (Moscow)
           zoom: 10,
           controls: ['zoomControl', 'fullscreenControl']
         }
@@ -44,7 +44,7 @@ export class YandexMapsService {
           ...options
         })
 
-        // Инициализируем кластеризатор
+        // Initialize clusterer
         this.clusterer = new this.ymaps.Clusterer({
           preset: 'islands#invertedBlueClusterIcons',
           clusterDisableClickZoom: true,
@@ -61,7 +61,7 @@ export class YandexMapsService {
     })
   }
 
-  // Добавление маркера бизнеса
+  // Add business marker
   addMarker(coordinates, properties = {}, options = {}) {
     return new Promise((resolve) => {
       const defaultOptions = {
@@ -79,7 +79,7 @@ export class YandexMapsService {
         }
       )
 
-      // Добавляем обработчик клика на маркер
+      // Add click handler to marker
       marker.events.add('click', () => {
         if (properties.balloonContent) {
           marker.balloon.open()
@@ -93,7 +93,7 @@ export class YandexMapsService {
     })
   }
 
-  // Добавление кастомного маркера пользователя
+  // Add custom user marker
   addUserMarker(coordinates) {
     if (this.userMarker) {
       this.map.geoObjects.remove(this.userMarker)
@@ -102,8 +102,8 @@ export class YandexMapsService {
     this.userMarker = new this.ymaps.Placemark(
       coordinates,
       {
-        hintContent: 'Ваше местоположение',
-        balloonContent: 'Вы здесь'
+        hintContent: 'Your location',
+        balloonContent: 'You are here'
       },
       {
         preset: 'islands#greenCircleIcon',
@@ -115,7 +115,7 @@ export class YandexMapsService {
     return this.userMarker
   }
 
-  // Удаление всех маркеров (кроме пользовательского)
+  // Remove all markers (except user marker)
   clearMarkers() {
     if (this.clusterer) {
       this.clusterer.removeAll()
@@ -123,7 +123,7 @@ export class YandexMapsService {
     this.markers = []
   }
 
-  // Центрирование карты на координатах
+  // Center map on coordinates
   setCenter(coordinates, zoom = null) {
     if (zoom) {
       this.map.setCenter(coordinates, zoom)
@@ -132,17 +132,17 @@ export class YandexMapsService {
     }
   }
 
-  // Установка зума
+  // Set zoom
   setZoom(zoom) {
     this.map.setZoom(zoom)
   }
 
-  // Получение текущих границ карты
+  // Get current map bounds
   getBounds() {
     return this.map.getBounds()
   }
 
-  // Поиск по адресу (геокодирование)
+  // Search by address (geocoding)
   geocode(address) {
     return new Promise((resolve, reject) => {
       this.ymaps.geocode(address)
@@ -156,14 +156,14 @@ export class YandexMapsService {
               bounds: firstGeoObject.properties.get('boundedBy')
             })
           } else {
-            reject(new Error('Адрес не найден'))
+            reject(new Error('Address not found'))
           }
         })
         .catch(reject)
     })
   }
 
-  // Обратное геокодирование (координаты в адрес)
+  // Reverse geocoding (coordinates to address)
   reverseGeocode(coordinates) {
     return new Promise((resolve, reject) => {
       this.ymaps.geocode(coordinates)
@@ -175,14 +175,14 @@ export class YandexMapsService {
               coordinates: firstGeoObject.geometry.getCoordinates()
             })
           } else {
-            reject(new Error('Адрес не найден'))
+            reject(new Error('Address not found'))
           }
         })
         .catch(reject)
     })
   }
 
-  // Построение маршрута
+  // Build route
   buildRoute(from, to, type = 'auto') {
     return new Promise((resolve, reject) => {
       const route = new this.ymaps.multiRouter.MultiRoute({
@@ -200,7 +200,7 @@ export class YandexMapsService {
     })
   }
 
-  // Получение текущего местоположения пользователя
+  // Get user's current location
   getUserLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -228,7 +228,7 @@ export class YandexMapsService {
     })
   }
 
-  // Создание кастомного балуна
+  // Create custom balloon
   createBalloonTemplate(content) {
     return `
       <div class="map-balloon">
@@ -237,7 +237,7 @@ export class YandexMapsService {
     `
   }
 
-  // Добавление кастомного элемента управления
+  // Add custom control
   addCustomControl(layout, options = {}) {
     const control = new this.ymaps.control.Button({
       data: options.data || { content: 'Button' },
@@ -252,37 +252,37 @@ export class YandexMapsService {
     return control
   }
 
-  // Установка ограничений по области
+  // Set area restrictions
   setBounds(bounds) {
     this.map.setBounds(bounds)
   }
 
-  // Включение/выключение поведения карты
+  // Enable/disable map behaviors
   setBehaviors(behaviors) {
     this.map.behaviors.disable(behaviors)
   }
 
-  // Добавление слоя
+  // Add layer
   addLayer(layer) {
     this.map.layers.add(layer)
   }
 
-  // Удаление слоя
+  // Remove layer
   removeLayer(layer) {
     this.map.layers.remove(layer)
   }
 
-  // Подписка на события карты
+  // Subscribe to map events
   on(event, callback) {
     this.map.events.add(event, callback)
   }
 
-  // Отписка от событий карты
+  // Unsubscribe from map events
   off(event, callback) {
     this.map.events.remove(event, callback)
   }
 
-  // Уничтожение карты
+  // Destroy map
   destroy() {
     if (this.map) {
       this.map.destroy()
@@ -295,7 +295,7 @@ export class YandexMapsService {
     }
   }
 
-  // Получение состояния карты
+  // Get map state
   getState() {
     return {
       center: this.map.getCenter(),
@@ -304,14 +304,14 @@ export class YandexMapsService {
     }
   }
 
-  // Восстановление состояния карты
+  // Restore map state
   setState(state) {
     if (state.center) {
       this.map.setCenter(state.center, state.zoom)
     }
   }
 
-  // Создание горячих зон (heatmap)
+  // Create heatmap
   createHeatmap(data, options = {}) {
     return new this.ymaps.Heatmap(data, {
       radius: 15,
@@ -329,34 +329,34 @@ export class YandexMapsService {
   }
 }
 
-// Вспомогательные функции
+// Utility functions
 export const MapUtils = {
-  // Расчет расстояния между двумя точками (в км)
+  // Calculate distance between two points (in km)
   calculateDistance(coords1, coords2) {
     const [lat1, lon1] = coords1
     const [lat2, lon2] = coords2
 
-    const R = 6371 // Радиус Земли в км
+    const R = 6371 // Earth radius in km
     const dLat = (lat2 - lat1) * Math.PI / 180
     const dLon = (lon2 - lon1) * Math.PI / 180
-    const a = 
+    const a =
       Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon/2) * Math.sin(dLon/2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   },
 
-  // Форматирование координат
+  // Format coordinates
   formatCoordinates(coordinates) {
     return coordinates.map(coord => coord.toFixed(6))
   },
 
-  // Проверка, находится ли точка в границах
+  // Check if point is within bounds
   isPointInBounds(point, bounds) {
     const [[south, west], [north, east]] = bounds
     const [lat, lng] = point
-    
+
     return (
       lat >= south &&
       lat <= north &&
@@ -365,7 +365,7 @@ export const MapUtils = {
     )
   },
 
-  // Создание bounds из массива точек
+  // Create bounds from array of points
   createBoundsFromPoints(points) {
     if (points.length === 0) return null
 
@@ -386,9 +386,9 @@ export const MapUtils = {
   }
 }
 
-// Константы для карты
+// Map constants
 export const MAP_CONSTANTS = {
-  DEFAULT_CENTER: [55.7558, 37.6173], // Москва
+  center: [33.755229, -84.371132], // Atlanta MLK Birth Home
   DEFAULT_ZOOM: 10,
   MIN_ZOOM: 3,
   MAX_ZOOM: 18,
@@ -409,7 +409,7 @@ export const MAP_CONSTANTS = {
   }
 }
 
-// Создаем singleton экземпляр
+// Create singleton instance
 export const yandexMapsService = new YandexMapsService()
 
 export default yandexMapsService
